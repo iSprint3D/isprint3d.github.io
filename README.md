@@ -2,8 +2,6 @@
 
 Website moderno e responsivo para Studio iSprint, especializado em Scan 3D, Modelagem Paramétrica e Prototipagem Técnica.
 
-![GitHub Pages Deploy](https://github.com/seu-usuario/studio-isprint/actions/workflows/deploy.yml/badge.svg)
-
 ---
 
 ## ✨ Características
