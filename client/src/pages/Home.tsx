@@ -1,16 +1,49 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
 import ContactForm from "@/components/ContactForm";
 import TestimonialCarousel from "@/components/TestimonialCarousel";
 import FAQSection from "@/components/FAQSection";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { FadeInUp, SlideInLeft, ScaleIn, StaggerContainer } from "@/components/animations";
-import { motion, useMotionTemplate, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { animate, motion, useInView, useMotionTemplate, useMotionValue, useSpring, useTransform } from "framer-motion";
+
+function CountUp({
+  to,
+  suffix = "",
+  start,
+}: {
+  to: number;
+  suffix?: string;
+  start: boolean;
+}) {
+  const [value, setValue] = useState(0);
+
+  useEffect(() => {
+    if (!start) return;
+
+    const controls = animate(0, to, {
+      duration: 3.6,
+      ease: "easeOut",
+      onUpdate: (latest) => setValue(Math.round(latest)),
+    });
+
+    return () => controls.stop();
+  }, [start, to]);
+
+  return (
+    <>
+      {value}
+      {suffix}
+    </>
+  );
+}
 
 export default function Home() {
   const { trackServiceCardClick, trackCTAClick, trackPageView } = useAnalytics();
+  const statsRef = useRef<HTMLDivElement | null>(null);
+  const statsInView = useInView(statsRef, { once: true, margin: "-80px" });
   const tiltX = useMotionValue(0);
   const tiltY = useMotionValue(0);
   const smoothTiltX = useSpring(tiltX, { stiffness: 160, damping: 22, mass: 0.45 });
@@ -40,7 +73,7 @@ export default function Home() {
             </a>
             <div className="hidden items-center gap-8 md:flex">
               <a href="#servicos" className="text-lg font-medium text-white/85 transition hover:text-white">
-                Servicos
+                Serviços
               </a>
               <a href="#sobre" className="text-lg font-medium text-white/85 transition hover:text-white">
                 Quem somos
@@ -49,7 +82,7 @@ export default function Home() {
                 Contato
               </a>
               <a href="#portfolio" className="text-lg font-medium text-white/85 transition hover:text-white">
-                Portfolio
+                Portfólio
               </a>
             </div>
             <Button
@@ -67,8 +100,8 @@ export default function Home() {
                   Produtos 3D, para negócios e indústrias.
                 </h1>
                 <p className="mb-8 max-w-lg text-xl leading-relaxed text-white/90">
-                  Desenvolvemos solucoes 3D para negocios e industrias, combinando engenharia,
-                  modelagem e prototipagem para validar projetos com mais rapidez e seguranca.
+                  Desenvolvemos solucoes 3D para negócios e indústrias, combinando engenharia,
+                  modelagem e prototipagem para validar projetos com mais rapidez e segurança.
                 </p>
                 <div className="flex flex-col gap-4 sm:flex-row">
                   <Button
@@ -80,20 +113,20 @@ export default function Home() {
                       href="#contato"
                       onClick={() => trackCTAClick("comecar_projeto", "hero_to_orcamento")}
                     >
-                      Comecar projeto <ArrowRight className="ml-2 h-4 w-4" />
+                      Começar projeto <ArrowRight className="ml-2 h-4 w-4" />
                     </a>
                   </Button>
                   <Button
                     asChild
                     size="lg"
                     variant="outline"
-                    className="border-black/25 bg-white/50 text-black hover:bg-white/80"
+                    className="border border-white bg-white text-black hover:bg-white/90"
                   >
                     <a
                       href="#servicos"
                       onClick={() => trackCTAClick("explorar_servicos", "hero_to_servicos")}
                     >
-                      Explorar servicos
+                      Explorar serviços
                     </a>
                   </Button>
                 </div>
@@ -158,12 +191,12 @@ export default function Home() {
             backgroundImage: `url('https://www.einscan.com/wp-content/uploads/2025/06/einscan.com-einscan-rigil-mobile.jpg')`,
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/58 to-transparent" />
         <div className="relative h-full flex flex-col justify-end p-8 text-white">
-          <span className="text-sm font-semibold text-secondary mb-2">Digitalização Industrial</span>
-          <h3 className="text-2xl font-bold mb-3">Scan 3D e Engenharia Reversa</h3>
-          <div className="inline-flex items-center text-white font-semibold group-hover:gap-2 transition-all">
-            Saiba mais <ArrowRight className="w-4 h-4 ml-1" />
+          <span className="mb-2 text-sm font-medium text-white/80">Digitalização Industrial</span>
+          <h3 className="mb-3 text-2xl font-semibold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)]">Scan 3D e Engenharia Reversa</h3>
+          <div className="inline-flex items-center gap-2 rounded-md border border-white/70 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-white/12">
+            Saiba mais <ArrowRight className="h-4 w-4" />
           </div>
         </div>
       </Link>
@@ -176,12 +209,12 @@ export default function Home() {
             backgroundImage: `url('https://damassets.autodesk.net/content/dam/autodesk/draftr/23906/cad-for-machine-design-landing-intro-panel-1172x660-2.jpg')`,
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/58 to-transparent" />
         <div className="relative h-full flex flex-col justify-end p-8 text-white">
-          <span className="text-sm font-semibold text-secondary mb-2">Projetos Técnicos</span>
-          <h3 className="text-2xl font-bold mb-3">Desenvolvimento Mecânico e Estrutural</h3>
-          <div className="inline-flex items-center text-white font-semibold group-hover:gap-2 transition-all">
-            Saiba mais <ArrowRight className="w-4 h-4 ml-1" />
+          <span className="mb-2 text-sm font-medium text-white/80">Projetos Técnicos</span>
+          <h3 className="mb-3 text-2xl font-semibold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)]">Desenvolvimento Mecânico e Estrutural</h3>
+          <div className="inline-flex items-center gap-2 rounded-md border border-white/70 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-white/12">
+            Saiba mais <ArrowRight className="h-4 w-4" />
           </div>
         </div>
       </Link>
@@ -191,15 +224,15 @@ export default function Home() {
         <div
           className="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
           style={{
-            backgroundImage: `url('https://plmx.com.br/wp-content/uploads/2020/06/Modelagem3D-1.jpeg')`,
+            backgroundImage: `url('https://www.autodesk.com/products/fusion-360/blog/wp-content/uploads/2022/03/sim1.jpg')`,
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/58 to-transparent" />
         <div className="relative h-full flex flex-col justify-end p-8 text-white">
-          <span className="text-sm font-semibold text-secondary mb-2">Para você imprimir</span>
-          <h3 className="text-2xl font-bold mb-3">Modelagem 3D</h3>
-          <div className="inline-flex items-center text-white font-semibold group-hover:gap-2 transition-all">
-            Saiba mais <ArrowRight className="w-4 h-4 ml-1" />
+          <span className="mb-2 text-sm font-medium text-white/80">Para você imprimir</span>
+          <h3 className="mb-3 text-2xl font-semibold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)]">Modelagem 3D</h3>
+          <div className="inline-flex items-center gap-2 rounded-md border border-white/70 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-white/12">
+            Saiba mais <ArrowRight className="h-4 w-4" />
           </div>
         </div>
       </Link>
@@ -212,12 +245,12 @@ export default function Home() {
             backgroundImage: `url('https://blog.prusa3d.com/wp-content/uploads/2018/02/farm01.jpg')`,
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/58 to-transparent" />
         <div className="relative h-full flex flex-col justify-end p-8 text-white">
-          <span className="text-sm font-semibold text-secondary mb-2">Nós fabricamos para você</span>
-          <h3 className="text-2xl font-bold mb-3">Materialização e Impressão 3D</h3>
-          <div className="inline-flex items-center text-white font-semibold group-hover:gap-2 transition-all">
-            Saiba mais <ArrowRight className="w-4 h-4 ml-1" />
+          <span className="mb-2 text-sm font-medium text-white/80">Nós fabricamos para você</span>
+          <h3 className="mb-3 text-2xl font-semibold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)]">Materialização e Impressão 3D</h3>
+          <div className="inline-flex items-center gap-2 rounded-md border border-white/70 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-white/12">
+            Saiba mais <ArrowRight className="h-4 w-4" />
           </div>
         </div>
       </Link>
@@ -342,20 +375,26 @@ export default function Home() {
               </div>
             </SlideInLeft>
             <ScaleIn delay={0.3}>
-            <div className="relative">
+            <div className="relative" ref={statsRef}>
               <div className="absolute inset-0 bg-gradient-to-br from-accent/20 to-secondary/20 rounded-2xl blur-2xl" />
               <div className="relative bg-white rounded-2xl p-8 border border-border">
                 <div className="space-y-6">
                   <div>
-                    <div className="text-3xl font-bold text-accent mb-2">100+</div>
+                    <div className="text-3xl font-bold text-accent mb-2">
+                      <CountUp to={100} suffix="+" start={statsInView} />
+                    </div>
                     <p className="text-muted-foreground">Projetos Realizados</p>
                   </div>
                   <div>
-                    <div className="text-3xl font-bold text-secondary mb-2">100+</div>
+                    <div className="text-3xl font-bold text-secondary mb-2">
+                      <CountUp to={100} suffix="+" start={statsInView} />
+                    </div>
                     <p className="text-muted-foreground">Clientes Satisfeitos</p>
                   </div>
                   <div>
-                    <div className="text-3xl font-bold text-foreground mb-2">5+</div>
+                    <div className="text-3xl font-bold text-foreground mb-2">
+                      <CountUp to={5} suffix="+" start={statsInView} />
+                    </div>
                     <p className="text-muted-foreground">Anos de Experiência</p>
                   </div>
                 </div>
