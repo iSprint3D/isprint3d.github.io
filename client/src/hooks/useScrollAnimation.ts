@@ -1,6 +1,5 @@
-import { useInView } from "react-intersection-observer";
 import { useAnimation, useMotionValue, useTransform } from "framer-motion";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 /**
  * Hook para controlar animações baseadas em scroll
@@ -13,10 +12,29 @@ import { useEffect } from "react";
  * </motion.div>
  */
 export function useScrollAnimation() {
-  const { ref, inView } = useInView({
-    threshold: 0.1,
-    triggerOnce: true,
-  });
+  const [inView, setInView] = useState(false);
+  const [element, setElement] = useState<Element | null>(null);
+  const ref = useCallback((node: Element | null) => {
+    setElement(node);
+  }, []);
+
+  useEffect(() => {
+    if (!element || inView) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, [element, inView]);
 
   const controls = useAnimation();
 
@@ -72,27 +90,24 @@ export function useCountUp(
   const rounded = useTransform(count, (latest) => Math.round(latest));
 
   useEffect(() => {
-    if (!inView) return;
+    if (!inView) {
+      count.set(0);
+      return;
+    }
 
-    const controls = {
-      animate: async () => {
-        await new Promise((resolve) => {
-          const interval = setInterval(() => {
-            count.set((prev) => {
-              const next = prev + target / (duration * 60);
-              if (next >= target) {
-                clearInterval(interval);
-                resolve(null);
-                return target;
-              }
-              return next;
-            });
-          }, 1000 / 60);
-        });
-      },
-    };
+    const safeDuration = Math.max(duration, 0.1);
+    const step = target / (safeDuration * 60);
+    const interval = setInterval(() => {
+      const prev = count.get();
+      const next = Math.min(prev + step, target);
+      count.set(next);
 
-    controls.animate();
+      if (next >= target) {
+        clearInterval(interval);
+      }
+    }, 1000 / 60);
+
+    return () => clearInterval(interval);
   }, [count, target, duration, inView]);
 
   return rounded;
