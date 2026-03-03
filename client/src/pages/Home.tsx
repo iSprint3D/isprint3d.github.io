@@ -100,7 +100,7 @@ export default function Home() {
                   Produtos 3D, para negócios e indústrias.
                 </h1>
                 <p className="mb-8 max-w-lg text-xl leading-relaxed text-white/90">
-                  Desenvolvemos solucoes 3D para negócios e indústrias, combinando engenharia,
+                  Desenvolvemos soluções  3D para negócios e indústrias, combinando engenharia,
                   modelagem e prototipagem para validar projetos com mais rapidez e segurança.
                 </p>
                 <div className="flex flex-col gap-4 sm:flex-row">
