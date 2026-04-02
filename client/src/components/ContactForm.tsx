@@ -50,10 +50,11 @@ const SERVICE_TYPE_LABELS = {
 } as const;
 
 const BUDGET_LABELS = {
+  "under-2k": "Até R$ 2.000",
+  "2k-5k": "R$ 2.000 - R$ 5.000",
   "5k-10k": "R$ 5.000 - R$ 10.000",
   "10k-25k": "R$ 10.000 - R$ 25.000",
-  "25k-50k": "R$ 25.000 - R$ 50.000",
-  "50k+": "R$ 50.000+",
+  "25k+": "R$ 25.000+",
 } as const;
 
 const TIMELINE_LABELS = {
@@ -75,7 +76,7 @@ const formSchema = z.object({
     .string()
     .min(20, "Descrição deve ter pelo menos 20 caracteres")
     .max(1000, "Descrição não pode exceder 1000 caracteres"),
-  budget: z.enum(["5k-10k", "10k-25k", "25k-50k", "50k+"], {
+  budget: z.enum(["under-2k", "2k-5k", "5k-10k", "10k-25k", "25k+"], {
     message: "Selecione uma faixa de orçamento",
   }),
   timeline: z.enum(["urgent", "1-3months", "3-6months", "flexible"], {
@@ -343,7 +344,7 @@ export default function ContactForm() {
             <input
               type="hidden"
               name="budget_label"
-              value={BUDGET_LABELS[watchedBudget ?? "5k-10k"]}
+              value={BUDGET_LABELS[watchedBudget ?? "under-2k"]}
             />
             <input
               type="hidden"
@@ -566,10 +567,11 @@ export default function ContactForm() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        <SelectItem value="under-2k">Até R$ 2.000</SelectItem>
+                        <SelectItem value="2k-5k">R$ 2.000 - R$ 5.000</SelectItem>
                         <SelectItem value="5k-10k">R$ 5.000 - R$ 10.000</SelectItem>
                         <SelectItem value="10k-25k">R$ 10.000 - R$ 25.000</SelectItem>
-                        <SelectItem value="25k-50k">R$ 25.000 - R$ 50.000</SelectItem>
-                        <SelectItem value="50k+">R$ 50.000+</SelectItem>
+                        <SelectItem value="25k+">R$ 25.000+</SelectItem>
                       </SelectContent>
                     </Select>
                     <input type="hidden" name="budget" value={field.value ?? ""} />
