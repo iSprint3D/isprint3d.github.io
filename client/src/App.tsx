@@ -9,6 +9,10 @@ import Scan3D from "./pages/Scan3D";
 import ParametricModeling from "./pages/ParametricModeling";
 import Prototyping from "./pages/Prototyping";
 import Analytics from "./pages/Analytics";
+import PortfolioModelagemParametrica from "./pages/PortfolioModelagemParametrica";
+import PortfolioPrototipagemLab from "./pages/PortfolioPrototipagemLab";
+import PortfolioScan3DIndustrial from "./pages/PortfolioScan3DIndustrial";
+import PortfolioVisualizacaoTecnica from "./pages/PortfolioVisualizacaoTecnica";
 
 
 function Router() {
@@ -18,6 +22,10 @@ function Router() {
       <Route path="/scan3d" component={Scan3D} />
       <Route path="/parametric" component={ParametricModeling} />
       <Route path="/prototyping" component={Prototyping} />
+      <Route path="/portfolio/carrinho-bbq-rebocavel" component={PortfolioScan3DIndustrial} />
+      <Route path="/portfolio/banco-morsa-para-tubos" component={PortfolioModelagemParametrica} />
+      <Route path="/portfolio/estacao-gym-funcional" component={PortfolioPrototipagemLab} />
+      <Route path="/portfolio/vistas-explodidas-detalhamento" component={PortfolioVisualizacaoTecnica} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/404" component={NotFound} />
       {/* Final fallback route */}

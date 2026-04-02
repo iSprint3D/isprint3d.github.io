@@ -1,17 +1,13 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import emailjs from "@emailjs/browser";
+import { AnimatePresence, motion } from "framer-motion";
+import { CheckCircle2, FileIcon, Loader2, Sparkles, Upload, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -21,18 +17,18 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { toast } from "sonner";
-import { Loader2, CheckCircle2, Upload, X, FileIcon } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
-/**
- * DESIGN PHILOSOPHY: Futurism Organic
- * - Form follows the design system with teal accents
- * - Smooth transitions and validation feedback
- * - Clear visual hierarchy and spacing
- * - File upload with drag-and-drop support
- */
-
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const SUCCESS_STATE_DURATION_MS = 4200;
 const ALLOWED_FILE_TYPES = [
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -43,48 +39,81 @@ const ALLOWED_FILE_TYPES = [
   "application/x-rar-compressed",
   "model/step",
   "application/stp",
+  "application/octet-stream",
 ];
+
+const SERVICE_TYPE_LABELS = {
+  scan3d: "Scan 3D",
+  parametric: "Modelagem paramétrica",
+  prototyping: "Prototipagem técnica",
+  other: "Outro",
+} as const;
+
+const BUDGET_LABELS = {
+  "5k-10k": "R$ 5.000 - R$ 10.000",
+  "10k-25k": "R$ 10.000 - R$ 25.000",
+  "25k-50k": "R$ 25.000 - R$ 50.000",
+  "50k+": "R$ 50.000+",
+} as const;
+
+const TIMELINE_LABELS = {
+  urgent: "Urgente (até 2 semanas)",
+  "1-3months": "1-3 meses",
+  "3-6months": "3-6 meses",
+  flexible: "Flexível",
+} as const;
 
 const formSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   email: z.string().email("Email inválido"),
   phone: z.string().min(10, "Telefone deve ter pelo menos 10 dígitos"),
-  company: z.string().min(2, "Nome da empresa obrigatório"),
-  serviceType: z.enum(["scan3d", "parametric", "prototyping", "other"]).refine(
-    (val) => val !== undefined,
-    "Selecione um tipo de serviço"
-  ),
+  company: z.string().min(2, "Nome da empresa é obrigatório"),
+  serviceType: z.enum(["scan3d", "parametric", "prototyping", "other"], {
+    message: "Selecione um tipo de serviço",
+  }),
   projectDescription: z
     .string()
     .min(20, "Descrição deve ter pelo menos 20 caracteres")
     .max(1000, "Descrição não pode exceder 1000 caracteres"),
-  budget: z.enum(["5k-10k", "10k-25k", "25k-50k", "50k+"]).refine(
-    (val) => val !== undefined,
-    "Selecione uma faixa de orçamento"
-  ),
-  timeline: z.enum(["urgent", "1-3months", "3-6months", "flexible"]).refine(
-    (val) => val !== undefined,
-    "Selecione um prazo"
-  ),
+  budget: z.enum(["5k-10k", "10k-25k", "25k-50k", "50k+"], {
+    message: "Selecione uma faixa de orçamento",
+  }),
+  timeline: z.enum(["urgent", "1-3months", "3-6months", "flexible"], {
+    message: "Selecione um prazo",
+  }),
   projectFile: z
     .instanceof(File)
     .optional()
-    .refine(
-      (file) => !file || file.size <= MAX_FILE_SIZE,
-      "Arquivo deve ter no máximo 10MB"
-    )
+    .refine((file) => !file || file.size <= MAX_FILE_SIZE, "Arquivo deve ter no máximo 10MB")
     .refine(
       (file) => !file || ALLOWED_FILE_TYPES.includes(file.type),
-      "Tipo de arquivo não permitido. Use PDF, DOC, DOCX, PNG, JPG, ZIP ou STEP"
+      "Tipo de arquivo não permitido. Use PDF, DOC, DOCX, PNG, JPG, ZIP ou STEP",
     ),
-  agreeTerms: z.boolean().refine((val) => val === true, {
+  agreeTerms: z.boolean().refine((value) => value === true, {
     message: "Você deve concordar com os termos",
   }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
+function getEmailJsConfig() {
+  const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+  const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+  const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+
+  if (!publicKey || !serviceId || !templateId) {
+    throw new Error(
+      "EmailJS não está configurado. Defina VITE_EMAILJS_PUBLIC_KEY, VITE_EMAILJS_SERVICE_ID e VITE_EMAILJS_TEMPLATE_ID.",
+    );
+  }
+
+  return { publicKey, serviceId, templateId };
+}
+
 export default function ContactForm() {
+  const { trackFormSubmission } = useAnalytics();
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const successTimeoutRef = useRef<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -106,402 +135,485 @@ export default function ContactForm() {
     },
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setUploadedFile(file);
-      form.setValue("projectFile", file);
-    }
+  const watchedServiceType = form.watch("serviceType");
+  const watchedBudget = form.watch("budget");
+  const watchedTimeline = form.watch("timeline");
+
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current) {
+        window.clearTimeout(successTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploadedFile(file);
+    form.setValue("projectFile", file, { shouldValidate: true });
   };
 
-  const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
+  const handleDrag = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (event.type === "dragenter" || event.type === "dragover") {
       setDragActive(true);
-    } else if (e.type === "dragleave") {
+    } else if (event.type === "dragleave") {
       setDragActive(false);
     }
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
     setDragActive(false);
 
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      setUploadedFile(file);
-      form.setValue("projectFile", file);
-    }
+    const file = event.dataTransfer.files?.[0];
+    if (!file) return;
+
+    setUploadedFile(file);
+    form.setValue("projectFile", file, { shouldValidate: true });
   };
 
   const removeFile = () => {
     setUploadedFile(null);
-    form.setValue("projectFile", undefined);
+    form.setValue("projectFile", undefined, { shouldValidate: true });
+
+    const fileInput = document.getElementById("file-upload") as HTMLInputElement | null;
+    if (fileInput) {
+      fileInput.value = "";
+    }
   };
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
+
     const k = 1024;
     const sizes = ["Bytes", "KB", "MB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+    const index = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${Math.round((bytes / Math.pow(k, index)) * 100) / 100} ${sizes[index]}`;
   };
 
-  async function onSubmit(values: FormValues) {
+  const resetFormState = () => {
+    form.reset();
+    setSubmitSuccess(false);
+    setUploadedFile(null);
+
+    if (formRef.current) {
+      formRef.current.reset();
+    }
+  };
+
+  async function onSubmit() {
+    if (!formRef.current) return;
+
     setIsSubmitting(true);
+
     try {
-      // Simular envio para backend
-      // Em produção, isso seria uma chamada API real com FormData
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const { publicKey, serviceId, templateId } = getEmailJsConfig();
 
-      // Log dos dados (em produção, seria enviado para um servidor)
-      console.log("Formulário enviado:", {
-        ...values,
-        fileName: uploadedFile?.name,
-        fileSize: uploadedFile?.size,
+      await emailjs.sendForm(serviceId, templateId, formRef.current, {
+        publicKey,
       });
 
-      // Mostrar sucesso
+      trackFormSubmission("contact_form", true);
       setSubmitSuccess(true);
-      toast.success("Orçamento solicitado com sucesso!", {
-        description: "Entraremos em contato em breve.",
+      toast.success("Orçamento solicitado com sucesso", {
+        description: "Recebemos seus dados e enviaremos uma resposta por email.",
       });
 
-      // Resetar formulário após 2 segundos
-      setTimeout(() => {
-        form.reset();
-        setSubmitSuccess(false);
-        setUploadedFile(null);
-      }, 2000);
+      if (successTimeoutRef.current) {
+        window.clearTimeout(successTimeoutRef.current);
+      }
+
+      successTimeoutRef.current = window.setTimeout(() => {
+        resetFormState();
+      }, SUCCESS_STATE_DURATION_MS);
     } catch (error) {
+      trackFormSubmission("contact_form", false);
+      const message =
+        error instanceof Error ? error.message : "Falha ao enviar formulário.";
+
       toast.error("Erro ao enviar formulário", {
-        description: "Tente novamente mais tarde.",
+        description: message,
       });
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  if (submitSuccess) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mb-6 animate-pulse">
-          <CheckCircle2 className="w-8 h-8 text-accent" />
-        </div>
-        <h3 className="text-2xl font-bold text-foreground mb-2">
-          Obrigado pelo seu interesse!
-        </h3>
-        <p className="text-muted-foreground max-w-md">
-          Recebemos sua solicitação de orçamento e arquivo de projeto. Nossa equipe analisará seu
-          projeto e entrará em contato em breve com uma proposta personalizada.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Linha 1: Nome e Email */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-foreground font-semibold">
-                  Nome Completo
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="João Silva"
-                    className="bg-white border-border focus:ring-accent"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-foreground font-semibold">
-                  Email
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="seu@email.com"
-                    className="bg-white border-border focus:ring-accent"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+      <AnimatePresence mode="wait">
+        {submitSuccess ? (
+          <motion.div
+            key="success"
+            initial={{ opacity: 0, y: 20, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -12, scale: 0.98 }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
+            className="relative overflow-hidden rounded-3xl border border-accent/20 bg-gradient-to-br from-accent/10 via-white to-accent/5 px-6 py-12 text-center shadow-[0_24px_80px_rgba(39,34,248,0.12)]"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.1, duration: 0.4 }}
+              className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-white shadow-lg shadow-accent/10"
+            >
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent/10">
+                <CheckCircle2 className="h-8 w-8 text-accent" />
+              </div>
+            </motion.div>
 
-        {/* Linha 2: Telefone e Empresa */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-foreground font-semibold">
-                  Telefone
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="tel"
-                    placeholder="(11) 99999-9999"
-                    className="bg-white border-border focus:ring-accent"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="company"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-foreground font-semibold">
-                  Empresa
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Sua Empresa Ltda."
-                    className="bg-white border-border focus:ring-accent"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.18, duration: 0.45 }}
+            >
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-accent/15 bg-white/80 px-3 py-1 text-xs font-medium text-accent backdrop-blur-sm">
+                <Sparkles className="h-3.5 w-3.5" />
+                Projeto enviado com sucesso
+              </div>
+              <h3 className="mb-2 text-2xl font-bold text-foreground">Obrigado pelo seu interesse</h3>
+              <p className="mx-auto max-w-md text-sm leading-7 text-muted-foreground md:text-base">
+                Recebemos sua solicitação de orçamento. Nossa equipe vai analisar o material e
+                responder no email informado.
+              </p>
+            </motion.div>
 
-        {/* Linha 3: Tipo de Serviço */}
-        <FormField
-          control={form.control}
-          name="serviceType"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-foreground font-semibold">
-                Tipo de Serviço
-              </FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger className="bg-white border-border focus:ring-accent">
-                    <SelectValue placeholder="Selecione um serviço" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="scan3d">Scan 3D</SelectItem>
-                  <SelectItem value="parametric">Modelagem Paramétrica</SelectItem>
-                  <SelectItem value="prototyping">Prototipagem Técnica</SelectItem>
-                  <SelectItem value="other">Outro</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Linha 4: Descrição do Projeto */}
-        <FormField
-          control={form.control}
-          name="projectDescription"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-foreground font-semibold">
-                Descrição do Projeto
-              </FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Descreva seu projeto, objetivos e requisitos técnicos..."
-                  className="bg-white border-border focus:ring-accent min-h-32 resize-none"
-                  {...field}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.45 }}
+              className="mx-auto mt-8 max-w-sm"
+            >
+              <div className="mb-2 flex items-center justify-between text-xs font-medium text-muted-foreground">
+                <span>Voltando ao formulário</span>
+                <span>{(SUCCESS_STATE_DURATION_MS / 1000).toFixed(1)}s</span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-accent/10">
+                <motion.div
+                  className="h-full rounded-full bg-accent"
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: SUCCESS_STATE_DURATION_MS / 1000, ease: "linear" }}
                 />
-              </FormControl>
-              <FormDescription className="text-xs text-muted-foreground">
-                Mínimo 20 caracteres, máximo 1000
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+              </div>
+            </motion.div>
+          </motion.div>
+        ) : (
+          <motion.form
+            key="form"
+            ref={formRef}
+            onSubmit={form.handleSubmit(onSubmit)}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="space-y-6"
+          >
+            <input
+              type="hidden"
+              name="service_type_label"
+              value={SERVICE_TYPE_LABELS[watchedServiceType ?? "other"]}
+            />
+            <input
+              type="hidden"
+              name="budget_label"
+              value={BUDGET_LABELS[watchedBudget ?? "5k-10k"]}
+            />
+            <input
+              type="hidden"
+              name="timeline_label"
+              value={TIMELINE_LABELS[watchedTimeline ?? "flexible"]}
+            />
 
-        {/* Linha 5: Upload de Arquivo */}
-        <FormField
-          control={form.control}
-          name="projectFile"
-          render={() => (
-            <FormItem>
-              <FormLabel className="text-foreground font-semibold">
-                Arquivo de Especificações (Opcional)
-              </FormLabel>
-              <FormControl>
-                <div
-                  className={`relative border-2 border-dashed rounded-xl p-8 transition-all ${
-                    dragActive
-                      ? "border-accent bg-accent/5"
-                      : "border-border bg-white/50 hover:bg-white/80"
-                  }`}
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                >
-                  <input
-                    type="file"
-                    onChange={handleFileChange}
-                    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip,.rar,.step,.stp"
-                    className="hidden"
-                    id="file-upload"
-                  />
-                  <label
-                    htmlFor="file-upload"
-                    className="flex flex-col items-center justify-center cursor-pointer"
-                  >
-                    <Upload className="w-8 h-8 text-accent mb-3" />
-                    <p className="text-sm font-semibold text-foreground mb-1">
-                      Arraste seu arquivo ou clique para selecionar
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      PDF, DOC, DOCX, PNG, JPG, ZIP, STEP (máx. 10MB)
-                    </p>
-                  </label>
-                </div>
-              </FormControl>
-              {uploadedFile && (
-                <div className="mt-4 p-4 bg-accent/5 border border-accent/20 rounded-lg flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <FileIcon className="w-5 h-5 text-accent" />
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">
-                        {uploadedFile.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatFileSize(uploadedFile.size)}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={removeFile}
-                    className="p-1 hover:bg-accent/10 rounded transition"
-                  >
-                    <X className="w-5 h-5 text-muted-foreground hover:text-foreground" />
-                  </button>
-                </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold text-foreground">Nome completo</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="João Silva"
+                        className="border-border bg-white focus:ring-accent"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold text-foreground">Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="seu@email.com"
+                        className="border-border bg-white focus:ring-accent"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold text-foreground">Telefone</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="tel"
+                        placeholder="(83) 99999-9999"
+                        className="border-border bg-white focus:ring-accent"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="company"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold text-foreground">Empresa</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Sua empresa"
+                        className="border-border bg-white focus:ring-accent"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="serviceType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="font-semibold text-foreground">Tipo de serviço</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="border-border bg-white focus:ring-accent">
+                        <SelectValue placeholder="Selecione um serviço" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="scan3d">Scan 3D</SelectItem>
+                      <SelectItem value="parametric">Modelagem paramétrica</SelectItem>
+                      <SelectItem value="prototyping">Prototipagem técnica</SelectItem>
+                      <SelectItem value="other">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <input type="hidden" name="serviceType" value={field.value ?? ""} />
+                  <FormMessage />
+                </FormItem>
               )}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            />
 
-        {/* Linha 6: Orçamento e Prazo */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <FormField
-            control={form.control}
-            name="budget"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-foreground font-semibold">
-                  Faixa de Orçamento
-                </FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <FormField
+              control={form.control}
+              name="projectDescription"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="font-semibold text-foreground">Descrição do projeto</FormLabel>
                   <FormControl>
-                    <SelectTrigger className="bg-white border-border focus:ring-accent">
-                      <SelectValue placeholder="Selecione uma faixa" />
-                    </SelectTrigger>
+                    <Textarea
+                      placeholder="Descreva seu projeto, objetivos e requisitos técnicos..."
+                      className="min-h-32 resize-none border-border bg-white focus:ring-accent"
+                      {...field}
+                    />
                   </FormControl>
-                  <SelectContent>
-                    <SelectItem value="5k-10k">R$ 5.000 - R$ 10.000</SelectItem>
-                    <SelectItem value="10k-25k">R$ 10.000 - R$ 25.000</SelectItem>
-                    <SelectItem value="25k-50k">R$ 25.000 - R$ 50.000</SelectItem>
-                    <SelectItem value="50k+">R$ 50.000+</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="timeline"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-foreground font-semibold">
-                  Prazo
-                </FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormDescription className="text-xs text-muted-foreground">
+                    Mínimo de 20 e máximo de 1000 caracteres.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="projectFile"
+              render={() => (
+                <FormItem>
+                  <FormLabel className="font-semibold text-foreground">
+                    Arquivo de especificações (opcional)
+                  </FormLabel>
                   <FormControl>
-                    <SelectTrigger className="bg-white border-border focus:ring-accent">
-                      <SelectValue placeholder="Selecione um prazo" />
-                    </SelectTrigger>
+                    <div
+                      className={`relative rounded-xl border-2 border-dashed p-8 transition-all ${
+                        dragActive
+                          ? "border-accent bg-accent/5"
+                          : "border-border bg-white/50 hover:bg-white/80"
+                      }`}
+                      onDragEnter={handleDrag}
+                      onDragLeave={handleDrag}
+                      onDragOver={handleDrag}
+                      onDrop={handleDrop}
+                    >
+                      <input
+                        id="file-upload"
+                        name="projectFile"
+                        type="file"
+                        onChange={handleFileChange}
+                        accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip,.rar,.step,.stp"
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="file-upload"
+                        className="flex cursor-pointer flex-col items-center justify-center"
+                      >
+                        <Upload className="mb-3 h-8 w-8 text-accent" />
+                        <p className="mb-1 text-sm font-semibold text-foreground">
+                          Arraste seu arquivo ou clique para selecionar
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          PDF, DOC, DOCX, PNG, JPG, ZIP, STEP ou STP, até 10MB
+                        </p>
+                      </label>
+                    </div>
                   </FormControl>
-                  <SelectContent>
-                    <SelectItem value="urgent">Urgente (até 2 semanas)</SelectItem>
-                    <SelectItem value="1-3months">1-3 meses</SelectItem>
-                    <SelectItem value="3-6months">3-6 meses</SelectItem>
-                    <SelectItem value="flexible">Flexível</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+                  {uploadedFile && (
+                    <div className="mt-4 flex items-center justify-between rounded-lg border border-accent/20 bg-accent/5 p-4">
+                      <div className="flex items-center gap-3">
+                        <FileIcon className="h-5 w-5 text-accent" />
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">
+                            {uploadedFile.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatFileSize(uploadedFile.size)}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={removeFile}
+                        className="rounded p-1 transition hover:bg-accent/10"
+                      >
+                        <X className="h-5 w-5 text-muted-foreground hover:text-foreground" />
+                      </button>
+                    </div>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        {/* Linha 7: Termos */}
-        <FormField
-          control={form.control}
-          name="agreeTerms"
-          render={({ field }) => (
-            <FormItem className="flex items-center gap-3 space-y-0">
-              <FormControl>
-                <input
-                  type="checkbox"
-                  checked={field.value}
-                  onChange={field.onChange}
-                  className="w-4 h-4 rounded border-border cursor-pointer"
-                />
-              </FormControl>
-              <FormLabel className="text-sm text-muted-foreground cursor-pointer">
-                Concordo em receber comunicações sobre meu projeto e aceito a política de privacidade
-              </FormLabel>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <div className="grid gap-6 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="budget"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold text-foreground">
+                      Faixa de orçamento
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="border-border bg-white focus:ring-accent">
+                          <SelectValue placeholder="Selecione uma faixa" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="5k-10k">R$ 5.000 - R$ 10.000</SelectItem>
+                        <SelectItem value="10k-25k">R$ 10.000 - R$ 25.000</SelectItem>
+                        <SelectItem value="25k-50k">R$ 25.000 - R$ 50.000</SelectItem>
+                        <SelectItem value="50k+">R$ 50.000+</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <input type="hidden" name="budget" value={field.value ?? ""} />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="timeline"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="font-semibold text-foreground">Prazo</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="border-border bg-white focus:ring-accent">
+                          <SelectValue placeholder="Selecione um prazo" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="urgent">Urgente (até 2 semanas)</SelectItem>
+                        <SelectItem value="1-3months">1-3 meses</SelectItem>
+                        <SelectItem value="3-6months">3-6 meses</SelectItem>
+                        <SelectItem value="flexible">Flexível</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <input type="hidden" name="timeline" value={field.value ?? ""} />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-        {/* Submit Button */}
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-accent text-accent-foreground hover:bg-accent/90 h-12 text-base font-semibold"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Enviando...
-            </>
-          ) : (
-            "Solicitar Orçamento"
-          )}
-        </Button>
-      </form>
+            <FormField
+              control={form.control}
+              name="agreeTerms"
+              render={({ field }) => (
+                <FormItem className="flex items-center gap-3 space-y-0">
+                  <FormControl>
+                    <input
+                      type="checkbox"
+                      checked={field.value}
+                      onChange={field.onChange}
+                      className="h-4 w-4 cursor-pointer rounded border-border"
+                    />
+                  </FormControl>
+                  <FormLabel className="cursor-pointer text-sm text-muted-foreground">
+                    Concordo em receber comunicações sobre meu projeto e aceito a política de
+                    privacidade.
+                  </FormLabel>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="h-12 w-full bg-accent text-base font-semibold text-accent-foreground hover:bg-accent/90"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                "Solicitar orçamento"
+              )}
+            </Button>
+          </motion.form>
+        )}
+      </AnimatePresence>
     </Form>
   );
 }
