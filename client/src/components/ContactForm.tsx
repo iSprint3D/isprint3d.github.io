@@ -350,6 +350,11 @@ export default function ContactForm() {
               name="timeline_label"
               value={TIMELINE_LABELS[watchedTimeline ?? "flexible"]}
             />
+            <input
+              type="hidden"
+              name="project_file_name"
+              value={uploadedFile?.name ?? "Nenhum arquivo enviado"}
+            />
 
             <div className="grid gap-6 md:grid-cols-2">
               <FormField
@@ -495,7 +500,6 @@ export default function ContactForm() {
                     >
                       <input
                         id="file-upload"
-                        name="projectFile"
                         type="file"
                         onChange={handleFileChange}
                         accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip,.rar,.step,.stp"
@@ -511,6 +515,10 @@ export default function ContactForm() {
                         </p>
                         <p className="text-xs text-muted-foreground">
                           PDF, DOC, DOCX, PNG, JPG, ZIP, STEP ou STP, até 10MB
+                        </p>
+                        <p className="mt-2 text-center text-[11px] leading-5 text-muted-foreground/80">
+                          O nome do arquivo será enviado no formulário. Se precisarmos do material,
+                          faremos a solicitação por email.
                         </p>
                       </label>
                     </div>
