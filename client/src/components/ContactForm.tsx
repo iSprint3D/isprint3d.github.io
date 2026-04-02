@@ -96,6 +96,25 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+function getEmailJsErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  if (typeof error === "object" && error !== null) {
+    const maybeText = "text" in error ? error.text : undefined;
+    const maybeStatus = "status" in error ? error.status : undefined;
+
+    if (typeof maybeText === "string" && maybeText.trim().length > 0) {
+      return typeof maybeStatus === "number"
+        ? `EmailJS (${maybeStatus}): ${maybeText}`
+        : `EmailJS: ${maybeText}`;
+    }
+  }
+
+  return "Falha ao enviar formulário.";
+}
+
 function getEmailJsConfig() {
   const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
   const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
@@ -234,8 +253,9 @@ export default function ContactForm() {
       }, SUCCESS_STATE_DURATION_MS);
     } catch (error) {
       trackFormSubmission("contact_form", false);
-      const message =
-        error instanceof Error ? error.message : "Falha ao enviar formulário.";
+      const message = getEmailJsErrorMessage(error);
+
+      console.error("EmailJS form submission failed", error);
 
       toast.error("Erro ao enviar formulário", {
         description: message,
