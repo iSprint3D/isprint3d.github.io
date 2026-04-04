@@ -1,4 +1,4 @@
-import ContactForm from "@/components/ContactForm";
+﻿import ContactForm from "@/components/ContactForm";
 import FAQSection from "@/components/FAQSection";
 import TestimonialCarousel from "@/components/TestimonialCarousel";
 import {
@@ -9,6 +9,7 @@ import {
 } from "@/components/animations";
 import { Button } from "@/components/ui/button";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import useEmblaCarousel from "embla-carousel-react";
 import {
   animate,
   motion,
@@ -18,7 +19,7 @@ import {
   useSpring,
   useTransform,
 } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
 
@@ -53,9 +54,43 @@ function CountUp({
   );
 }
 
+const portfolioProjects = [
+  {
+    href: "/portfolio/carrinho-bbq-rebocavel",
+    trackingKey: "portfolio_carrinho_bbq",
+    title: "Scan 3D industrial",
+    description: "Digitalização de componentes mecânicos complexos",
+    image:
+      "https://metrology.news/wp-content/uploads/2022/04/Multifunctional-Handheld-3D-Laser-Scanner-Launched-With-Integrated-Photogrammetry.png",
+  },
+  {
+    href: "/portfolio/banco-morsa-para-tubos",
+    trackingKey: "portfolio_banco_tubos",
+    title: "Modelagem paramétrica",
+    description: "Sistema de design adaptativo e modular",
+    image: "https://tecnetinc.com/parametric%20defined%20ironcad%20image.png",
+  },
+  {
+    href: "/portfolio/estacao-gym-funcional",
+    trackingKey: "portfolio_gym_funcional",
+    title: "Prototipagem lab",
+    description: "Desenvolvimento de protótipos funcionais",
+    image: "https://me.sabanciuniv.edu/sites/me.sabanciuniv.edu/files/pictures/t58_asif_l.jpg",
+  },
+  {
+    href: "/portfolio/vistas-explodidas-detalhamento",
+    trackingKey: "portfolio_vistas_explodidas",
+    title: "Visualização técnica",
+    description: "Renderização e apresentação de projetos",
+    image:
+      "https://www.researchgate.net/profile/Manfred-Hild/publication/221105153/figure/fig2/AS:669097696165906@1536536730981/Exploded-view-exposing-the-main-components-mechanical-grounding-1-drive-shaft-2.png",
+  },
+] as const;
+
 export default function Home() {
   const { trackServiceCardClick, trackCTAClick, trackPageView } = useAnalytics();
   const statsRef = useRef<HTMLDivElement | null>(null);
+  const contactHighlightTimeoutRef = useRef<number | null>(null);
   const statsInView = useInView(statsRef, { once: true, margin: "-80px" });
   const tiltX = useMotionValue(0);
   const tiltY = useMotionValue(0);
@@ -64,10 +99,84 @@ export default function Home() {
   const glowX = useTransform(smoothTiltY, [-10, 10], [35, 65]);
   const glowY = useTransform(smoothTiltX, [-10, 10], [58, 42]);
   const glow = useMotionTemplate`radial-gradient(circle at ${glowX}% ${glowY}%, rgba(255,255,255,0.42), rgba(255,255,255,0) 46%)`;
+  const [contactSectionHighlighted, setContactSectionHighlighted] = useState(false);
+  const [portfolioEmblaRef, portfolioEmblaApi] = useEmblaCarousel({
+    align: "start",
+    loop: true,
+    dragFree: true,
+  });
+  const [portfolioIndex, setPortfolioIndex] = useState(0);
+  const [portfolioPaused, setPortfolioPaused] = useState(false);
 
   useEffect(() => {
     trackPageView("home");
+
+    return () => {
+      if (contactHighlightTimeoutRef.current) {
+        window.clearTimeout(contactHighlightTimeoutRef.current);
+      }
+    };
   }, [trackPageView]);
+
+  useEffect(() => {
+    if (!portfolioEmblaApi) return;
+
+    const onSelect = () => {
+      setPortfolioIndex(portfolioEmblaApi.selectedScrollSnap());
+    };
+
+    onSelect();
+    portfolioEmblaApi.on("select", onSelect);
+    portfolioEmblaApi.on("reInit", onSelect);
+
+    return () => {
+      portfolioEmblaApi.off("select", onSelect);
+      portfolioEmblaApi.off("reInit", onSelect);
+    };
+  }, [portfolioEmblaApi]);
+
+  useEffect(() => {
+    if (!portfolioEmblaApi || portfolioPaused) return;
+
+    const interval = window.setInterval(() => {
+      portfolioEmblaApi.scrollNext();
+    }, 6200);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [portfolioEmblaApi, portfolioPaused]);
+
+  const handleSectionScroll = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    sectionId: string,
+    ctaName: string,
+    location: string,
+  ) => {
+    event.preventDefault();
+    trackCTAClick(ctaName, location);
+
+    const target = document.getElementById(sectionId);
+    if (!target) {
+      window.location.hash = sectionId;
+      return;
+    }
+
+    const offsetTop = target.getBoundingClientRect().top + window.scrollY - 28;
+    window.scrollTo({ top: offsetTop, behavior: "smooth" });
+
+    if (sectionId === "contato") {
+      setContactSectionHighlighted(true);
+
+      if (contactHighlightTimeoutRef.current) {
+        window.clearTimeout(contactHighlightTimeoutRef.current);
+      }
+
+      contactHighlightTimeoutRef.current = window.setTimeout(() => {
+        setContactSectionHighlighted(false);
+      }, 1800);
+    }
+  };
 
   return (
     <div className="min-h-screen overflow-hidden bg-white text-foreground">
@@ -115,12 +224,25 @@ export default function Home() {
                   modelagem e prototipagem para validar projetos com mais rapidez e segurança.
                 </p>
                 <div className="flex flex-col gap-4 sm:flex-row">
-                  <Button asChild size="lg" className="bg-black text-white hover:bg-black/85">
+                  <Button
+                    asChild
+                    size="lg"
+                    className="group relative min-w-[220px] overflow-hidden rounded-full bg-black px-7 text-white shadow-[0_18px_40px_rgba(0,0,0,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-black/92 hover:shadow-[0_24px_50px_rgba(0,0,0,0.34)] sm:min-w-[240px]"
+                  >
                     <a
                       href="#contato"
-                      onClick={() => trackCTAClick("comecar_projeto", "hero_to_orcamento")}
+                      onClick={(event) =>
+                        handleSectionScroll(
+                          event,
+                          "contato",
+                          "comecar_projeto",
+                          "hero_to_orcamento",
+                        )
+                      }
                     >
-                      Começar projeto <ArrowRight className="ml-2 h-4 w-4" />
+                      <span className="absolute inset-y-0 left-[-18%] w-14 -skew-x-12 bg-white/15 opacity-0 transition-all duration-700 group-hover:left-[112%] group-hover:opacity-100" />
+                      <span className="relative">Começar projeto</span>
+                      <ArrowRight className="relative ml-1 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                     </a>
                   </Button>
                   <Button
@@ -298,113 +420,88 @@ export default function Home() {
             </div>
           </FadeInUp>
 
-          <StaggerContainer staggerDelay={0.15} delayOffset={0.2}>
-            <div className="grid gap-8 md:grid-cols-2">
-              <Link
-                href="/portfolio/carrinho-bbq-rebocavel"
-                onClick={() => trackCTAClick("portfolio_carrinho_bbq", "home_portfolio")}
-                className="group relative overflow-hidden rounded-2xl"
-              >
-                <div
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                  style={{
-                    backgroundImage:
-                      "url('https://metrology.news/wp-content/uploads/2022/04/Multifunctional-Handheld-3D-Laser-Scanner-Launched-With-Integrated-Photogrammetry.png')",
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/58 to-transparent" />
-                <div className="relative flex h-80 flex-col justify-end p-8 text-white">
-                  <h3 className="mb-2 text-2xl font-semibold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)]">
-                    Scan 3D industrial
-                  </h3>
-                  <p className="text-sm font-medium text-white/80">
-                    Digitalização de componentes mecânicos complexos
-                  </p>
-                  <div className="mt-4 inline-flex items-center gap-2 rounded-md border border-white/70 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-white/12">
-                    Saiba mais <ArrowRight className="h-4 w-4" />
-                  </div>
+          <FadeInUp delay={0.18}>
+            <div className="relative">
+              <div className="mb-6 flex items-center justify-between gap-4">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Deslize para os lados ou use os controles para navegar pelos projetos.
+                </p>
+                <div className="hidden items-center gap-3 md:flex">
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    className="h-11 w-11 rounded-full border-border bg-white/90"
+                    onClick={() => portfolioEmblaApi?.scrollPrev()}
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    className="h-11 w-11 rounded-full border-border bg-white/90"
+                    onClick={() => portfolioEmblaApi?.scrollNext()}
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
                 </div>
-              </Link>
+              </div>
 
-              <Link
-                href="/portfolio/banco-morsa-para-tubos"
-                onClick={() => trackCTAClick("portfolio_banco_tubos", "home_portfolio")}
-                className="group relative overflow-hidden rounded-2xl"
+              <div
+                className="overflow-hidden"
+                ref={portfolioEmblaRef}
+                onMouseEnter={() => setPortfolioPaused(true)}
+                onMouseLeave={() => setPortfolioPaused(false)}
               >
-                <div
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                  style={{
-                    backgroundImage:
-                      "url('https://tecnetinc.com/parametric%20defined%20ironcad%20image.png')",
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/58 to-transparent" />
-                <div className="relative flex h-80 flex-col justify-end p-8 text-white">
-                  <h3 className="mb-2 text-2xl font-semibold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)]">
-                    Modelagem paramétrica
-                  </h3>
-                  <p className="text-sm font-medium text-white/80">
-                    Sistema de design adaptativo e modular
-                  </p>
-                  <div className="mt-4 inline-flex items-center gap-2 rounded-md border border-white/70 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-white/12">
-                    Saiba mais <ArrowRight className="h-4 w-4" />
-                  </div>
+                <div className="-ml-5 flex">
+                  {portfolioProjects.map((project, index) => (
+                    <div
+                      key={project.href}
+                      className="min-w-0 flex-[0_0_88%] pl-5 sm:flex-[0_0_72%] lg:flex-[0_0_43%] xl:flex-[0_0_39%]"
+                    >
+                      <Link
+                        href={project.href}
+                        onClick={() => trackCTAClick(project.trackingKey, "home_portfolio")}
+                        className="group relative block overflow-hidden rounded-2xl shadow-[0_18px_45px_rgba(15,23,42,0.10)] transition-all duration-500"
+                      >
+                        <div
+                          className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                          style={{ backgroundImage: `url('${project.image}')` }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/58 to-transparent" />
+                        <div className="relative flex h-80 flex-col justify-end p-8 text-white">
+                          <h3 className="mb-2 text-2xl font-semibold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)]">
+                            {project.title}
+                          </h3>
+                          <p className="text-sm font-medium text-white/80">{project.description}</p>
+                          <div className="mt-4 inline-flex items-center gap-2 rounded-md border border-white/70 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-white/12">
+                            Saiba mais <ArrowRight className="h-4 w-4" />
+                          </div>
+                        </div>
+                      </Link>
+                    </div>
+                  ))}
                 </div>
-              </Link>
+              </div>
 
-              <Link
-                href="/portfolio/estacao-gym-funcional"
-                onClick={() => trackCTAClick("portfolio_gym_funcional", "home_portfolio")}
-                className="group relative overflow-hidden rounded-2xl"
-              >
-                <div
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                  style={{
-                    backgroundImage:
-                      "url('https://me.sabanciuniv.edu/sites/me.sabanciuniv.edu/files/pictures/t58_asif_l.jpg')",
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/58 to-transparent" />
-                <div className="relative flex h-80 flex-col justify-end p-8 text-white">
-                  <h3 className="mb-2 text-2xl font-semibold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)]">
-                    Prototipagem lab
-                  </h3>
-                  <p className="text-sm font-medium text-white/80">
-                    Desenvolvimento de protótipos funcionais
-                  </p>
-                  <div className="mt-4 inline-flex items-center gap-2 rounded-md border border-white/70 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-white/12">
-                    Saiba mais <ArrowRight className="h-4 w-4" />
-                  </div>
-                </div>
-              </Link>
-
-              <Link
-                href="/portfolio/vistas-explodidas-detalhamento"
-                onClick={() => trackCTAClick("portfolio_vistas_explodidas", "home_portfolio")}
-                className="group relative overflow-hidden rounded-2xl"
-              >
-                <div
-                  className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105"
-                  style={{
-                    backgroundImage:
-                      "url('https://www.researchgate.net/profile/Manfred-Hild/publication/221105153/figure/fig2/AS:669097696165906@1536536730981/Exploded-view-exposing-the-main-components-mechanical-grounding-1-drive-shaft-2.png')",
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/58 to-transparent" />
-                <div className="relative flex h-80 flex-col justify-end p-8 text-white">
-                  <h3 className="mb-2 text-2xl font-semibold text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)]">
-                    Visualização técnica
-                  </h3>
-                  <p className="text-sm font-medium text-white/80">
-                    Renderização e apresentação de projetos
-                  </p>
-                  <div className="mt-4 inline-flex items-center gap-2 rounded-md border border-white/70 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-white/12">
-                    Saiba mais <ArrowRight className="h-4 w-4" />
-                  </div>
-                </div>
-              </Link>
+              <div className="mt-6 flex items-center justify-center gap-2">
+                {portfolioProjects.map((project, index) => (
+                  <button
+                    key={project.href}
+                    type="button"
+                    onClick={() => portfolioEmblaApi?.scrollTo(index)}
+                    className={`rounded-full transition-all duration-300 ${
+                      index === portfolioIndex
+                        ? "h-2.5 w-9 bg-accent"
+                        : "h-2.5 w-2.5 bg-border hover:bg-muted-foreground"
+                    }`}
+                    aria-label={`Ir para projeto ${index + 1}`}
+                  />
+                ))}
+              </div>
             </div>
-          </StaggerContainer>
+          </FadeInUp>
         </div>
       </section>
 
@@ -429,14 +526,33 @@ export default function Home() {
                   a visualizar, validar e comunicar seus projetos com mais clareza, velocidade e
                   aplicabilidade real.
                 </p>
-                <Button asChild className="bg-accent text-accent-foreground hover:bg-accent/90">
-                  <a
-                    href="#contato"
-                    onClick={() => trackCTAClick("agendar_consulta", "about_section")}
+                <div className="flex flex-col gap-4 sm:flex-row">
+                  <Button
+                    asChild
+                    className="group relative min-w-[220px] overflow-hidden rounded-full bg-accent px-6 text-accent-foreground shadow-[0_16px_35px_rgba(39,34,248,0.24)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent/92 hover:shadow-[0_22px_45px_rgba(39,34,248,0.3)]"
                   >
-                    Agendar consulta
-                  </a>
-                </Button>
+                    <a
+                      href="#contato"
+                      onClick={(event) =>
+                        handleSectionScroll(event, "contato", "agendar_consulta", "about_section")
+                      }
+                    >
+                      <span className="absolute inset-y-0 left-[-18%] w-14 -skew-x-12 bg-white/18 opacity-0 transition-all duration-700 group-hover:left-[112%] group-hover:opacity-100" />
+                      <span className="relative">Agendar consulta</span>
+                      <ArrowRight className="relative ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    </a>
+                  </Button>
+
+                  <Link href="/faca-parte">
+                    <a
+                      onClick={() => trackCTAClick("faca_parte", "about_section")}
+                      className="group inline-flex min-w-[220px] items-center justify-center rounded-full border border-accent/20 bg-white px-6 py-3 text-sm font-medium text-accent transition-all duration-300 hover:-translate-y-0.5 hover:border-accent/35 hover:bg-accent/5"
+                    >
+                      Fazer parte da iSprint
+                      <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    </a>
+                  </Link>
+                </div>
               </div>
             </SlideInLeft>
 
@@ -473,28 +589,26 @@ export default function Home() {
 
       <TestimonialCarousel />
 
-      <section className="relative overflow-hidden bg-gradient-to-r from-accent via-secondary/20 to-accent py-20 text-white">
-        <div className="absolute inset-0 opacity-10">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage:
-                "url('https://d2xsxph8kpxj0f.cloudfront.net/310519663312667618/HLPz4AQ2jqaUDP7GsJvDWw/tech-pattern-abstract-kJGUjKGQxtaXLNSzDducNA.webp')",
-              backgroundSize: "cover",
-            }}
-          />
-        </div>
+      <section className="bg-[#2722f8] py-20 text-white">
         <div className="container relative z-10 text-center">
           <h2 className="mb-6 text-white">Pronto para começar?</h2>
           <p className="mx-auto mb-8 max-w-2xl text-lg text-white/80">
             Entre em contato conosco e vamos transformar sua ideia em um modelo digital de precisão.
           </p>
-          <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
+          <Button
+            asChild
+            size="lg"
+            className="group relative min-w-[230px] overflow-hidden rounded-full bg-white px-7 text-[#2722f8] shadow-[0_18px_40px_rgba(0,0,0,0.18)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/92 hover:text-[#2722f8] hover:shadow-[0_24px_50px_rgba(0,0,0,0.22)] sm:min-w-[250px]"
+          >
             <a
               href="#contato"
-              onClick={() => trackCTAClick("iniciar_projeto", "bottom_cta")}
+              onClick={(event) =>
+                handleSectionScroll(event, "contato", "iniciar_projeto", "bottom_cta")
+              }
             >
-              Iniciar projeto <ArrowRight className="ml-2 h-4 w-4" />
+              <span className="absolute inset-y-0 left-[-18%] w-14 -skew-x-12 bg-[#2722f8]/14 opacity-0 transition-all duration-700 group-hover:left-[112%] group-hover:opacity-100" />
+              <span className="relative">Iniciar projeto</span>
+              <ArrowRight className="relative ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </a>
           </Button>
         </div>
@@ -512,9 +626,24 @@ export default function Home() {
                 personalizada.
               </p>
             </div>
-            <div className="rounded-2xl border border-border bg-gradient-to-br from-accent/5 via-secondary/5 to-accent/5 p-8">
+            <motion.div
+              animate={
+                contactSectionHighlighted
+                  ? {
+                      scale: [1, 1.012, 1],
+                      boxShadow: [
+                        "0 0 0 rgba(39,34,248,0)",
+                        "0 28px 80px rgba(39,34,248,0.18)",
+                        "0 0 0 rgba(39,34,248,0)",
+                      ],
+                    }
+                  : { scale: 1, boxShadow: "0 0 0 rgba(39,34,248,0)" }
+              }
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="rounded-2xl border border-border bg-gradient-to-br from-accent/5 via-secondary/5 to-accent/5 p-8"
+            >
               <ContactForm />
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -565,6 +694,11 @@ export default function Home() {
                   <a href="#contato" className="transition hover:text-white">
                     Contato
                   </a>
+                </li>
+                <li>
+                  <Link href="/faca-parte">
+                    <a className="transition hover:text-white">Faça parte</a>
+                  </Link>
                 </li>
               </ul>
             </div>

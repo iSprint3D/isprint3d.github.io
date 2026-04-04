@@ -1,134 +1,184 @@
-import { Button } from "@/components/ui/button";
-import { ArrowRight, CheckCircle2, Boxes } from "lucide-react";
-import { useEffect } from "react";
+﻿import { useEffect } from "react";
 import { Link } from "wouter";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
-/**
- * DESIGN PHILOSOPHY: Futurism Organic
- * - Consistent with main design system
- * - Detailed technical information with visual hierarchy
- * - Case studies with before/after imagery
- */
+const processSteps = [
+  {
+    step: "01",
+    title: "Definição de parâmetros",
+    description:
+      "Mapeamos as variáveis críticas do produto, como dimensões, folgas, espessuras e relações geométricas.",
+  },
+  {
+    step: "02",
+    title: "Construção da lógica",
+    description:
+      "Criamos regras e dependências para que o modelo responda automaticamente a alterações futuras.",
+  },
+  {
+    step: "03",
+    title: "Validação técnica",
+    description:
+      "Testamos cenários de uso, famílias de peças e versões de produto sem refazer o projeto do zero.",
+  },
+  {
+    step: "04",
+    title: "Entrega escalável",
+    description:
+      "Organizamos o arquivo para manutenção, documentação e reaproveitamento em novas demandas.",
+  },
+] as const;
+
+const deliverables = [
+  {
+    title: "Modelos CAD inteligentes",
+    items: [
+      "Peças e conjuntos paramétricos",
+      "Configurações reutilizáveis",
+      "Bibliotecas com regras claras",
+      "Estrutura pronta para revisões futuras",
+    ],
+  },
+  {
+    title: "Documentação automatizada",
+    items: [
+      "Vistas técnicas vinculadas ao modelo",
+      "Cotas atualizadas conforme alterações",
+      "Tabelas e listas coerentes com o projeto",
+      "Base mais segura para produção",
+    ],
+  },
+  {
+    title: "Exploração de alternativas",
+    items: [
+      "Famílias de produto com variações controladas",
+      "Simulações de cenários de dimensionamento",
+      "Ajustes rápidos para novos clientes",
+      "Menos retrabalho em alterações recorrentes",
+    ],
+  },
+] as const;
 
 export default function ParametricModeling() {
   const { trackServiceView } = useAnalytics();
 
   useEffect(() => {
     trackServiceView("Modelagem Paramétrica");
-  }, []);
+  }, [trackServiceView]);
 
   return (
     <div className="min-h-screen bg-white text-foreground">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 backdrop-blur-md bg-white/80 border-b border-border">
-        <div className="container flex items-center justify-between h-20">
+      <nav className="fixed top-0 z-50 w-full border-b border-border bg-white/80 backdrop-blur-md">
+        <div className="container flex h-20 items-center justify-between">
           <Link href="/">
-            <a className="flex items-center gap-2 hover:opacity-80 transition">
-              <img src="/assets/logo-icon.png" alt="iSprint" className="w-10 h-10" />
-              <img src="/assets/logo-full.png" alt="iSprint" className="h-8 hidden sm:block" />
+            <a className="flex items-center gap-2 transition hover:opacity-80">
+              <img src="/assets/logo-icon.png" alt="iSprint" className="h-10 w-10" />
+              <img src="/assets/logo-full.png" alt="iSprint" className="hidden h-8 sm:block" />
             </a>
           </Link>
-          <div className="hidden md:flex items-center gap-8">
-            <Link href="/">
-              <a className="text-sm font-medium hover:text-accent transition">Home</a>
-            </Link>
+
+          <div className="hidden items-center gap-8 md:flex">
             <Link href="/#servicos">
-              <a className="text-sm font-medium hover:text-accent transition">Serviços</a>
+              <a className="text-sm font-medium transition hover:text-accent">Serviços</a>
             </Link>
             <Link href="/#portfolio">
-              <a className="text-sm font-medium hover:text-accent transition">Portfolio</a>
+              <a className="text-sm font-medium transition hover:text-accent">Portfólio</a>
             </Link>
-            <Button className="bg-accent text-accent-foreground hover:bg-accent/90">
-              Contato
-            </Button>
+            <Link href="/#contato">
+              <a className="inline-flex h-10 items-center justify-center rounded-md bg-accent px-4 text-sm font-medium text-accent-foreground transition hover:bg-accent/90">
+                Contato
+              </a>
+            </Link>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-20 overflow-hidden">
+      <section className="relative overflow-hidden pb-20 pt-32">
         <div className="absolute inset-0 -z-10">
           <div
             className="absolute inset-0 opacity-40"
             style={{
-              backgroundImage: `url('https://d2xsxph8kpxj0f.cloudfront.net/310519663312667618/HLPz4AQ2jqaUDP7GsJvDWw/parametric-modeling-m4Xf6moeKPmBRrmyfyA8dP.webp')`,
-              backgroundSize: "cover",
+              backgroundImage:
+                "url('https://d2xsxph8kpxj0f.cloudfront.net/310519663312667618/HLPz4AQ2jqaUDP7GsJvDWw/parametric-modeling-m4Xf6moeKPmBRrmyfyA8dP.webp')",
               backgroundPosition: "center",
+              backgroundSize: "cover",
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-white/0 via-white/50 to-white" />
+          <div className="absolute inset-0 bg-gradient-to-b from-white/0 via-white/55 to-white" />
         </div>
 
         <div className="container relative z-10">
           <div className="max-w-3xl">
-            <div className="inline-block mb-6 px-4 py-2 rounded-full bg-accent/10 border border-accent/20">
+            <div className="mb-6 inline-block rounded-full border border-accent/20 bg-accent/10 px-4 py-2">
               <span className="text-sm font-semibold text-accent">Modelagem Paramétrica</span>
             </div>
 
             <h1 className="mb-6 text-foreground leading-tight">
-              Design Inteligente e Adaptativo
+              Projetos mais inteligentes, flexíveis e escaláveis
             </h1>
 
-            <p className="text-lg text-muted-foreground mb-8 leading-relaxed max-w-2xl">
-              Crie modelos 3D que se adaptam automaticamente a mudanças de parâmetros. Designs
-              paramétricos permitem gerar infinitas variações mantendo controle total sobre cada
-              aspecto do modelo. Ideal para otimização de produtos e exploração de alternativas.
+            <p className="mb-8 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+              Criamos modelos 3D estruturados por regras e parâmetros, permitindo gerar versões,
+              adaptar dimensões e evoluir produtos com muito menos retrabalho.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
-                Solicitar Orçamento <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
-              <Button size="lg" variant="outline" className="border-border hover:bg-muted">
-                Baixar Portfólio
-              </Button>
+            <div className="flex flex-col gap-4 sm:flex-row">
+              <Link href="/#contato">
+                <a className="inline-flex items-center justify-center rounded-md bg-accent px-6 py-3 text-sm font-medium text-accent-foreground transition hover:bg-accent/90">
+                  Solicitar orçamento <ArrowRight className="ml-2 h-4 w-4" />
+                </a>
+              </Link>
+              <Link href="/#portfolio">
+                <a className="inline-flex items-center justify-center rounded-md border border-border px-6 py-3 text-sm font-medium transition hover:bg-muted">
+                  Ver aplicações
+                </a>
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Overview Section */}
-      <section className="py-20 bg-gradient-to-b from-white via-purple-50/30 to-white">
+      <section className="bg-gradient-to-b from-white via-purple-50/30 to-white py-20">
         <div className="container">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid items-center gap-12 md:grid-cols-2">
             <div>
-              <h2 className="text-foreground mb-6">O que é Modelagem Paramétrica?</h2>
-              <p className="text-muted-foreground mb-4 leading-relaxed">
-                Modelagem paramétrica é uma abordagem de design onde o modelo é controlado por
-                parâmetros e relações matemáticas. Ao alterar um parâmetro, toda a geometria se
-                atualiza automaticamente, mantendo as relações e restrições definidas.
+              <h2 className="mb-6 text-foreground">O que é modelagem paramétrica?</h2>
+              <p className="mb-4 leading-relaxed text-muted-foreground">
+                É uma abordagem de projeto em que a geometria é controlada por parâmetros,
+                relações e regras. Em vez de remodelar tudo a cada mudança, o sistema responde de
+                forma previsível aos ajustes que você precisar.
               </p>
-              <p className="text-muted-foreground mb-6 leading-relaxed">
-                Essa metodologia permite exploração rápida de alternativas de design, otimização
-                de geometrias e criação de famílias de produtos com variações controladas.
+              <p className="mb-6 leading-relaxed text-muted-foreground">
+                Isso faz diferença em linhas de produto, peças com muitas revisões, soluções sob
+                medida e projetos que precisam equilibrar velocidade com rigor técnico.
               </p>
 
               <div className="space-y-4">
                 <div className="flex gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-accent flex-shrink-0 mt-1" />
+                  <CheckCircle2 className="mt-1 h-5 w-5 flex-shrink-0 text-accent" />
                   <div>
-                    <h4 className="font-semibold text-foreground mb-1">Flexibilidade Total</h4>
+                    <h4 className="mb-1 font-semibold text-foreground">Flexibilidade real</h4>
                     <p className="text-sm text-muted-foreground">
-                      Altere dimensões e veja atualizações instantâneas
+                      Ajuste medidas e relações sem perder consistência de projeto.
                     </p>
                   </div>
                 </div>
                 <div className="flex gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-accent flex-shrink-0 mt-1" />
+                  <CheckCircle2 className="mt-1 h-5 w-5 flex-shrink-0 text-accent" />
                   <div>
-                    <h4 className="font-semibold text-foreground mb-1">Otimização Rápida</h4>
+                    <h4 className="mb-1 font-semibold text-foreground">Revisões mais rápidas</h4>
                     <p className="text-sm text-muted-foreground">
-                      Explore múltiplas variações em horas
+                      Ideal para cenários com versões, variações e atualizações frequentes.
                     </p>
                   </div>
                 </div>
                 <div className="flex gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-accent flex-shrink-0 mt-1" />
+                  <CheckCircle2 className="mt-1 h-5 w-5 flex-shrink-0 text-accent" />
                   <div>
-                    <h4 className="font-semibold text-foreground mb-1">Documentação Automática</h4>
+                    <h4 className="mb-1 font-semibold text-foreground">Base técnica sólida</h4>
                     <p className="text-sm text-muted-foreground">
-                      Desenhos técnicos atualizados automaticamente
+                      Mais controle sobre documentação, fabricação e evolução do produto.
                     </p>
                   </div>
                 </div>
@@ -136,10 +186,10 @@ export default function ParametricModeling() {
             </div>
 
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-secondary/20 to-accent/20 rounded-2xl blur-2xl" />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-secondary/20 to-accent/20 blur-2xl" />
               <img
                 src="https://d2xsxph8kpxj0f.cloudfront.net/310519663312667618/HLPz4AQ2jqaUDP7GsJvDWw/parametric-modeling-m4Xf6moeKPmBRrmyfyA8dP.webp"
-                alt="Parametric Modeling"
+                alt="Modelagem paramétrica"
                 className="relative rounded-2xl border border-border shadow-lg"
               />
             </div>
@@ -147,46 +197,20 @@ export default function ParametricModeling() {
         </div>
       </section>
 
-      {/* Process Section */}
       <section className="py-20">
         <div className="container">
-          <h2 className="text-foreground mb-12 text-center">Processo de Design Paramétrico</h2>
+          <h2 className="mb-12 text-center text-foreground">Fluxo de construção do modelo</h2>
 
-          <div className="grid md:grid-cols-4 gap-6">
-            {[
-              {
-                step: "01",
-                title: "Definição de Parâmetros",
-                description:
-                  "Identificar variáveis principais que controlam o design (dimensões, proporções, etc)",
-              },
-              {
-                step: "02",
-                title: "Construção de Relações",
-                description:
-                  "Estabelecer relações matemáticas e restrições entre os parâmetros",
-              },
-              {
-                step: "03",
-                title: "Modelagem Inteligente",
-                description:
-                  "Criar geometria que responde automaticamente às mudanças de parâmetros",
-              },
-              {
-                step: "04",
-                title: "Exploração e Otimização",
-                description:
-                  "Testar variações e otimizar design conforme critérios específicos",
-              },
-            ].map((item, idx) => (
+          <div className="grid gap-6 md:grid-cols-4">
+            {processSteps.map((item, idx) => (
               <div key={idx} className="relative">
-                <div className="bg-white border border-border rounded-2xl p-6 hover:shadow-lg transition-all duration-300">
-                  <div className="text-4xl font-bold text-secondary/20 mb-4">{item.step}</div>
-                  <h3 className="text-foreground font-semibold mb-3">{item.title}</h3>
+                <div className="rounded-2xl border border-border bg-white p-6 transition-all duration-300 hover:shadow-lg">
+                  <div className="mb-4 text-4xl font-bold text-secondary/20">{item.step}</div>
+                  <h3 className="mb-3 font-semibold text-foreground">{item.title}</h3>
                   <p className="text-sm text-muted-foreground">{item.description}</p>
                 </div>
-                {idx < 3 && (
-                  <div className="hidden md:block absolute top-1/2 -right-3 w-6 h-0.5 bg-gradient-to-r from-secondary to-transparent" />
+                {idx < processSteps.length - 1 && (
+                  <div className="absolute right-[-0.75rem] top-1/2 hidden h-0.5 w-6 bg-gradient-to-r from-secondary to-transparent md:block" />
                 )}
               </div>
             ))}
@@ -194,50 +218,50 @@ export default function ParametricModeling() {
         </div>
       </section>
 
-      {/* Case Study */}
-      <section className="py-20 bg-gradient-to-r from-secondary/5 via-accent/5 to-secondary/5">
+      <section className="bg-gradient-to-r from-secondary/5 via-accent/5 to-secondary/5 py-20">
         <div className="container">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid items-center gap-12 md:grid-cols-2">
             <div>
-              <div className="inline-block mb-4 px-3 py-1 rounded-full bg-accent/10 border border-accent/20">
+              <div className="mb-4 inline-block rounded-full border border-accent/20 bg-accent/10 px-3 py-1">
                 <span className="text-xs font-semibold text-accent">CASE STUDY</span>
               </div>
-              <h2 className="text-foreground mb-6">
-                Sistema Modular de Mobiliário Paramétrico
-              </h2>
-              <p className="text-muted-foreground mb-4 leading-relaxed">
-                Cliente: Fabricante de móveis | Desafio: Criar linha de produtos modulares com
-                múltiplas configurações
+
+              <h2 className="mb-6 text-foreground">Linha modular com múltiplas configurações</h2>
+              <p className="mb-4 leading-relaxed text-muted-foreground">
+                Cliente: fabricante de mobiliário técnico. Desafio: criar uma base de projeto que
+                permitisse gerar versões customizadas sem refazer todos os desenhos.
               </p>
 
-              <div className="space-y-4 mb-8">
+              <div className="mb-8 space-y-4">
                 <div>
-                  <h4 className="font-semibold text-foreground mb-2">Solução</h4>
-                  <p className="text-muted-foreground text-sm">
-                    Desenvolvemos modelo paramétrico que permite gerar 50+ variações de
-                    configuração a partir de 8 parâmetros principais (altura, profundidade,
-                    largura, número de prateleiras, etc).
+                  <h4 className="mb-2 font-semibold text-foreground">Solução</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Estruturamos o produto com parâmetros principais, regras de montagem e
+                    documentação vinculada, viabilizando variações controladas por largura,
+                    profundidade, alturas e acessórios.
                   </p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-foreground mb-2">Resultado</h4>
-                  <p className="text-muted-foreground text-sm">
-                    Redução de 80% no tempo de design | Desenhos técnicos automáticos | Facilidade
-                    para customização por cliente
+                  <h4 className="mb-2 font-semibold text-foreground">Resultado</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Menos retrabalho em revisões, geração mais rápida de alternativas e base mais
+                    sólida para expansão da linha.
                   </p>
                 </div>
               </div>
 
-              <Button className="bg-accent text-accent-foreground hover:bg-accent/90">
-                Ver Mais Casos <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
+              <Link href="/#portfolio">
+                <a className="inline-flex items-center justify-center rounded-md bg-accent px-6 py-3 text-sm font-medium text-accent-foreground transition hover:bg-accent/90">
+                  Ver mais casos <ArrowRight className="ml-2 h-4 w-4" />
+                </a>
+              </Link>
             </div>
 
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-secondary/20 to-accent/20 rounded-2xl blur-2xl" />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-secondary/20 to-accent/20 blur-2xl" />
               <img
                 src="https://d2xsxph8kpxj0f.cloudfront.net/310519663312667618/HLPz4AQ2jqaUDP7GsJvDWw/parametric-modeling-m4Xf6moeKPmBRrmyfyA8dP.webp"
-                alt="Case Study"
+                alt="Case de modelagem paramétrica"
                 className="relative rounded-2xl border border-border shadow-lg"
               />
             </div>
@@ -245,228 +269,42 @@ export default function ParametricModeling() {
         </div>
       </section>
 
-      {/* Tools & Technologies */}
       <section className="py-20">
         <div className="container">
-          <h2 className="text-foreground mb-12 text-center">Ferramentas e Tecnologias</h2>
+          <h2 className="mb-12 text-center text-foreground">Entregas e benefícios</h2>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white border border-border rounded-2xl p-8">
-              <h3 className="text-foreground font-semibold mb-6">Software CAD</h3>
-              <ul className="space-y-3 text-sm text-muted-foreground">
-                <li className="flex items-start gap-3">
-                  <span className="text-accent font-bold">•</span>
-                  <span>Autodesk Fusion 360</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-accent font-bold">•</span>
-                  <span>Rhinoceros + Grasshopper</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-accent font-bold">•</span>
-                  <span>Autodesk Inventor</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-accent font-bold">•</span>
-                  <span>SolidWorks Premium</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-white border border-border rounded-2xl p-8">
-              <h3 className="text-foreground font-semibold mb-6">Análise e Simulação</h3>
-              <ul className="space-y-3 text-sm text-muted-foreground">
-                <li className="flex items-start gap-3">
-                  <span className="text-accent font-bold">•</span>
-                  <span>Análise FEA (Elementos Finitos)</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-accent font-bold">•</span>
-                  <span>Simulação de fluxo (CFD)</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-accent font-bold">•</span>
-                  <span>Otimização topológica</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-accent font-bold">•</span>
-                  <span>Análise de movimento</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-white border border-border rounded-2xl p-8">
-              <h3 className="text-foreground font-semibold mb-6">Renderização</h3>
-              <ul className="space-y-3 text-sm text-muted-foreground">
-                <li className="flex items-start gap-3">
-                  <span className="text-accent font-bold">•</span>
-                  <span>Keyshot</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-accent font-bold">•</span>
-                  <span>V-Ray</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-accent font-bold">•</span>
-                  <span>Visualização em tempo real</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-accent font-bold">•</span>
-                  <span>Apresentações interativas</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Benefits */}
-      <section className="py-20 bg-gradient-to-b from-white via-blue-50/30 to-white">
-        <div className="container">
-          <h2 className="text-foreground mb-12 text-center">Benefícios da Modelagem Paramétrica</h2>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            {[
-              {
-                title: "Iteração Rápida",
-                description:
-                  "Teste múltiplas variações de design em horas em vez de semanas",
-              },
-              {
-                title: "Consistência de Design",
-                description:
-                  "Mantenha regras de design consistentes em toda a família de produtos",
-              },
-              {
-                title: "Redução de Erros",
-                description:
-                  "Relações matemáticas garantem precisão e evitam inconsistências",
-              },
-              {
-                title: "Customização em Massa",
-                description:
-                  "Gere variações personalizadas para diferentes clientes automaticamente",
-              },
-              {
-                title: "Documentação Automática",
-                description:
-                  "Desenhos técnicos e listas de materiais atualizadas automaticamente",
-              },
-              {
-                title: "Otimização Facilitada",
-                description:
-                  "Explore espaço de design e encontre soluções ótimas rapidamente",
-              },
-            ].map((benefit, idx) => (
-              <div key={idx} className="flex gap-4">
-                <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
-                  <CheckCircle2 className="w-6 h-6 text-accent" />
-                </div>
-                <div>
-                  <h3 className="text-foreground font-semibold mb-2">{benefit.title}</h3>
-                  <p className="text-muted-foreground text-sm">{benefit.description}</p>
-                </div>
+          <div className="grid gap-8 md:grid-cols-3">
+            {deliverables.map((group) => (
+              <div key={group.title} className="rounded-2xl border border-border bg-white p-8">
+                <h3 className="mb-6 font-semibold text-foreground">{group.title}</h3>
+                <ul className="space-y-3 text-sm text-muted-foreground">
+                  {group.items.map((item) => (
+                    <li key={item} className="flex items-start gap-3">
+                      <span className="font-bold text-accent">•</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-foreground via-secondary/10 to-foreground text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `url('https://d2xsxph8kpxj0f.cloudfront.net/310519663312667618/HLPz4AQ2jqaUDP7GsJvDWw/tech-pattern-abstract-kJGUjKGQxtaXLNSzDducNA.webp')`,
-              backgroundSize: "cover",
-            }}
-          />
-        </div>
+      <section className="bg-[#2722f8] py-20 text-white">
         <div className="container relative z-10 text-center">
-          <h2 className="text-white mb-6">Transforme seu design com parametrização</h2>
-          <p className="text-white/80 text-lg mb-8 max-w-2xl mx-auto">
-            Descubra como a modelagem paramétrica pode acelerar seu processo de desenvolvimento
+          <h2 className="mb-6 text-white">Quer estruturar um produto com mais inteligência?</h2>
+          <p className="mx-auto mb-8 max-w-2xl text-lg text-white/80">
+            Fale com a iSprint para desenhar uma base paramétrica que suporte evolução técnica,
+            personalização e ganho real de tempo nas próximas versões.
           </p>
-          <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
-            Solicitar Orçamento <ArrowRight className="ml-2 w-4 h-4" />
-          </Button>
+          <Link href="/#contato">
+            <a className="inline-flex items-center justify-center rounded-md bg-white px-6 py-3 text-sm font-medium text-[#2722f8] transition hover:bg-white/90">
+              Solicitar orçamento <ArrowRight className="ml-2 h-4 w-4" />
+            </a>
+          </Link>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-foreground text-white py-12">
-        <div className="container">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <Link href="/">
-                <a className="flex items-center gap-2 mb-4 hover:opacity-80 transition">
-                  <img src="/assets/logo-icon.png" alt="iSprint" className="w-10 h-10" />
-                </a>
-              </Link>
-              <p className="text-white/60 text-sm">Criação Técnica Digital</p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Serviços</h4>
-              <ul className="space-y-2 text-sm text-white/60">
-                <li>
-                  <Link href="/scan3d">
-                    <a className="hover:text-white transition">Scan 3D</a>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/parametric">
-                    <a className="hover:text-white transition">Modelagem Paramétrica</a>
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/prototyping">
-                    <a className="hover:text-white transition">Prototipagem</a>
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Empresa</h4>
-              <ul className="space-y-2 text-sm text-white/60">
-                <li>
-                  <Link href="/">
-                    <a className="hover:text-white transition">Home</a>
-                  </Link>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition">
-                    Portfolio
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition">
-                    Blog
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Contato</h4>
-              <ul className="space-y-2 text-sm text-white/60">
-                <li>
-                  <a href="mailto:contato@studioct.com" className="hover:text-white transition">
-                    contato@studioct.com
-                  </a>
-                </li>
-                <li>
-                  <a href="tel:+5511999999999" className="hover:text-white transition">
-                    +55 (11) 99999-9999
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-white/10 pt-8 text-center text-sm text-white/60">
-            <p>&copy; 2026 Studio de Criação Técnica. Todos os direitos reservados.</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

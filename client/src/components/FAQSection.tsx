@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
-
-/**
- * DESIGN PHILOSOPHY: Futurism Organic
- * - Clean accordion design with smooth animations
- * - Organized by service category
- * - Clear visual hierarchy and spacing
- */
+import { ChevronDown, Mail, MessageCircle } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface FAQItem {
   id: string;
@@ -21,112 +22,112 @@ const faqItems: FAQItem[] = [
     category: "Scan 3D",
     question: "Qual é a precisão do seu serviço de Scan 3D?",
     answer:
-      "Nosso serviço de Scan 3D oferece precisão de até 0.1mm, dependendo do tamanho e complexidade do objeto. Utilizamos tecnologia de ponta com scanners de última geração para garantir modelos digitais de alta fidelidade que podem ser usados para engenharia reversa, prototipagem e análise técnica.",
+      "Nosso serviço de Scan 3D oferece precisão de até 0,1 mm, dependendo do tamanho e da complexidade do objeto. Utilizamos tecnologia de ponta para garantir modelos digitais de alta fidelidade, prontos para engenharia reversa, prototipagem e análise técnica.",
   },
   {
     id: "scan-2",
     category: "Scan 3D",
     question: "Qual é o tamanho máximo de objeto que vocês conseguem escanear?",
     answer:
-      "Podemos escanear objetos desde alguns milímetros até estruturas de vários metros. Para peças muito grandes, utilizamos técnicas de escaneamento modular, dividindo o objeto em seções e unindo-as digitalmente. Consulte-nos para casos específicos.",
+      "Podemos escanear desde objetos pequenos até estruturas de grande porte. Para peças muito grandes, utilizamos escaneamento modular, dividindo o objeto em seções e unindo tudo digitalmente depois.",
   },
   {
     id: "scan-3",
     category: "Scan 3D",
     question: "Em quanto tempo recebo o modelo 3D após o escaneamento?",
     answer:
-      "O tempo de processamento varia conforme a complexidade: objetos simples (2-3 dias), objetos médios (5-7 dias), objetos complexos (10-15 dias). Oferecemos opções de processamento acelerado com custo adicional se você precisar de entrega mais rápida.",
+      "O prazo varia conforme a complexidade do projeto. Em geral, peças simples levam de 2 a 3 dias, peças médias de 5 a 7 dias e projetos mais complexos podem levar de 10 a 15 dias.",
   },
   {
     id: "scan-4",
     category: "Scan 3D",
     question: "Quais formatos de arquivo vocês entregam?",
     answer:
-      "Entregamos em múltiplos formatos: STL, OBJ, STEP, IGES, PLY e FBX. Você pode escolher o formato mais adequado para seu software de design ou engenharia. Também fornecemos nuvem de pontos em formato LAZ ou XYZ se necessário.",
+      "Trabalhamos com formatos como STL, OBJ, STEP, IGES, PLY e FBX. Assim, você recebe o material no formato mais adequado para seu fluxo de design, engenharia ou fabricação.",
   },
   {
     id: "param-1",
     category: "Modelagem Paramétrica",
     question: "O que exatamente é modelagem paramétrica?",
     answer:
-      "Modelagem paramétrica é uma abordagem de design onde o modelo é controlado por parâmetros (dimensões, ângulos, etc.). Isso permite criar variações infinitas do design mantendo as relações geométricas. Se você mudar um parâmetro, todo o modelo se adapta automaticamente.",
+      "É uma abordagem de design em que o modelo é controlado por parâmetros, como dimensões, espessuras e ângulos. Isso permite ajustar e gerar variações do projeto com muito mais rapidez e consistência.",
   },
   {
     id: "param-2",
     category: "Modelagem Paramétrica",
     question: "Quantas variações de design posso criar com modelagem paramétrica?",
     answer:
-      "Teoricamente, variações infinitas! Você pode explorar diferentes tamanhos, proporções, materiais e configurações sem precisar recriar o modelo do zero. Isso é especialmente útil para otimizar designs, testar diferentes cenários ou criar famílias de produtos.",
+      "Na prática, inúmeras. A grande vantagem é conseguir testar diferentes proporções, tamanhos e configurações sem reconstruir o modelo do zero sempre que houver uma mudança.",
   },
   {
     id: "param-3",
     category: "Modelagem Paramétrica",
     question: "Qual software vocês usam para modelagem paramétrica?",
     answer:
-      "Utilizamos Fusion 360, Rhino com Grasshopper, SolidWorks e Autodesk Inventor, dependendo das necessidades do projeto. Podemos trabalhar com seus arquivos existentes ou criar modelos paramétricos do zero. Consulte-nos sobre qual ferramenta é melhor para seu caso.",
+      "Utilizamos ferramentas como Fusion 360, Rhino com Grasshopper, SolidWorks e Autodesk Inventor, de acordo com o tipo de projeto e a necessidade técnica envolvida.",
   },
   {
     id: "param-4",
     category: "Modelagem Paramétrica",
     question: "Posso usar modelos paramétricos para manufatura?",
     answer:
-      "Sim! Modelos paramétricos podem ser otimizados para manufatura e exportados para máquinas CNC, impressoras 3D ou outros processos de produção. Garantimos que os modelos sejam tecnicamente viáveis e prontos para fabricação.",
+      "Sim. Os modelos podem ser preparados para fabricação e exportados para CNC, impressão 3D e outros processos industriais, sempre considerando viabilidade técnica e acabamento adequado.",
   },
   {
     id: "proto-1",
     category: "Prototipagem Técnica",
     question: "Qual é a diferença entre prototipagem técnica e impressão 3D comum?",
     answer:
-      "Prototipagem técnica vai além da impressão 3D. Inclui design otimizado, seleção de materiais, testes de resistência, simulações, montagem e validação funcional. Criamos protótipos que realmente funcionam e podem ser testados em condições reais.",
+      "A prototipagem técnica vai além da impressão. Ela envolve ajuste de projeto, escolha de material, validação funcional e, quando necessário, iterações para garantir que o protótipo faça sentido em uso real.",
   },
   {
     id: "proto-2",
     category: "Prototipagem Técnica",
     question: "Quanto tempo leva para ter um protótipo funcional?",
     answer:
-      "Depende da complexidade: protótipos simples (2-3 semanas), protótipos médios (4-8 semanas), protótipos complexos com testes (8-16 semanas). Oferecemos opções de desenvolvimento iterativo onde você recebe versões melhoradas progressivamente.",
+      "Depende da complexidade do produto. Protótipos simples costumam levar de 2 a 3 semanas, enquanto protótipos mais elaborados podem exigir de 4 a 8 semanas ou mais.",
   },
   {
     id: "proto-3",
     category: "Prototipagem Técnica",
     question: "Vocês fazem testes de resistência e simulação?",
     answer:
-      "Sim! Realizamos análises de elementos finitos (FEA), testes de resistência, simulações de stress, análises térmicas e dinâmicas. Isso garante que seu protótipo não apenas pareça bom, mas também funcione perfeitamente sob condições reais de uso.",
+      "Sim. Quando o projeto exige, realizamos análises e validações técnicas para ajudar a verificar comportamento estrutural, encaixes, interferências e viabilidade do protótipo.",
   },
   {
     id: "proto-4",
     category: "Prototipagem Técnica",
     question: "Posso iterar no design durante o processo de prototipagem?",
     answer:
-      "Absolutamente! Oferecemos ciclos iterativos onde você recebe versões do protótipo, testa, fornece feedback, e nós fazemos ajustes. Isso acelera a chegada ao design final e reduz riscos ao lançar o produto no mercado.",
+      "Sim. Trabalhamos de forma iterativa justamente para evoluir o projeto com segurança, reduzindo riscos e melhorando o resultado final antes da fase de produção.",
   },
   {
     id: "geral-1",
     category: "Geral",
     question: "Qual é o valor mínimo de projeto que vocês aceitam?",
     answer:
-      "Não temos valor mínimo fixo. Trabalhamos com projetos de qualquer tamanho, desde pequenas peças até grandes estruturas. Fazemos orçamentos personalizados baseados na complexidade, tempo e recursos necessários. Solicite uma consulta gratuita.",
+      "Não trabalhamos com um valor mínimo fixo. Avaliamos cada demanda com base no escopo, no nível de detalhe e no tempo necessário para entregar com qualidade.",
   },
   {
     id: "geral-2",
     category: "Geral",
     question: "Vocês assinam NDA (Acordo de Confidencialidade)?",
     answer:
-      "Sim, assinamos NDAs para proteger a propriedade intelectual de nossos clientes. Entendemos que muitos projetos são confidenciais e garantimos total sigilo sobre suas especificações e designs.",
+      "Sim. Entendemos que muitos projetos exigem sigilo e podemos assinar NDA para proteger sua propriedade intelectual e suas informações técnicas.",
   },
   {
     id: "geral-3",
     category: "Geral",
     question: "Como funciona o processo de orçamento?",
     answer:
-      "Você nos envia as especificações do projeto (desenhos, descrição, requisitos). Analisamos e apresentamos um orçamento detalhado com escopo, prazo e deliverables. Após aprovação, assinamos contrato e iniciamos o trabalho.",
+      "Você nos envia as informações do projeto, analisamos escopo e complexidade, e retornamos com uma proposta clara de prazo, entregáveis e investimento estimado.",
   },
   {
     id: "geral-4",
     category: "Geral",
     question: "Vocês oferecem suporte pós-projeto?",
     answer:
-      "Sim! Oferecemos suporte técnico após entrega, ajustes menores sem custo adicional, e consultoria sobre próximas etapas (manufatura, otimizações, etc.). Também disponibilizamos manutenção de modelos paramétricos se você precisar fazer alterações no futuro.",
+      "Sim. Dependendo do projeto, oferecemos suporte técnico, ajustes pontuais e orientação para próximos passos, como fabricação, revisão de modelo ou novas iterações.",
   },
 ];
 
@@ -143,23 +144,20 @@ export default function FAQSection() {
   };
 
   return (
-    <section className="py-20 bg-gradient-to-b from-white via-secondary/5 to-white">
+    <section className="bg-gradient-to-b from-white via-secondary/5 to-white py-20">
       <div className="container">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <div className="inline-block mb-4 px-4 py-2 rounded-full bg-accent/10 border border-accent/20">
-            <span className="text-sm font-semibold text-accent">
-              DÚVIDAS FREQUENTES
-            </span>
+        <div className="mb-16 text-center">
+          <div className="mb-4 inline-block rounded-full bg-[#2722f8] px-4 py-2">
+            <span className="text-sm font-semibold text-white">DÚVIDAS FREQUENTES</span>
           </div>
-          <h2 className="text-foreground mb-4">Perguntas Frequentes</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Encontre respostas para as perguntas mais comuns sobre nossos serviços de criação técnica digital
+          <h2 className="mb-4 text-foreground">Perguntas Frequentes</h2>
+          <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+            Encontre respostas para as perguntas mais comuns sobre nossos serviços de criação
+            técnica digital.
           </p>
         </div>
 
-        {/* Category Tabs */}
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
+        <div className="mb-12 flex flex-wrap justify-center gap-3">
           {categories.map((category) => (
             <button
               key={category}
@@ -167,10 +165,10 @@ export default function FAQSection() {
                 setSelectedCategory(category);
                 setExpandedId(null);
               }}
-              className={`px-6 py-2 rounded-full font-semibold transition-all ${
+              className={`rounded-full px-6 py-2 font-semibold transition-all ${
                 selectedCategory === category
                   ? "bg-accent text-accent-foreground shadow-lg"
-                  : "bg-white border border-border text-foreground hover:border-accent hover:text-accent"
+                  : "border border-border bg-white text-foreground hover:border-accent hover:text-accent"
               }`}
             >
               {category}
@@ -178,50 +176,88 @@ export default function FAQSection() {
           ))}
         </div>
 
-        {/* FAQ Items */}
-        <div className="max-w-3xl mx-auto space-y-4">
+        <div className="mx-auto max-w-3xl space-y-4">
           {filteredFAQs.map((item) => (
             <div
               key={item.id}
-              className="bg-white border border-border rounded-xl overflow-hidden hover:shadow-lg transition-all"
+              className="overflow-hidden rounded-xl border border-border bg-white transition-all hover:shadow-lg"
             >
               <button
                 onClick={() => toggleExpand(item.id)}
-                className="w-full px-6 py-4 flex items-center justify-between hover:bg-muted/50 transition-colors"
+                className="flex w-full items-center justify-between px-6 py-4 text-left transition-colors hover:bg-muted/50"
               >
-                <h3 className="text-left font-semibold text-foreground">
-                  {item.question}
-                </h3>
+                <h3 className="font-semibold text-foreground">{item.question}</h3>
                 <ChevronDown
-                  className={`w-5 h-5 text-accent flex-shrink-0 transition-transform duration-300 ${
+                  className={`h-5 w-5 flex-shrink-0 text-accent transition-transform duration-300 ${
                     expandedId === item.id ? "rotate-180" : ""
                   }`}
                 />
               </button>
 
-              {/* Answer */}
               {expandedId === item.id && (
-                <div className="px-6 py-4 bg-muted/30 border-t border-border">
-                  <p className="text-muted-foreground leading-relaxed">
-                    {item.answer}
-                  </p>
+                <div className="border-t border-border bg-muted/30 px-6 py-4">
+                  <p className="leading-relaxed text-muted-foreground">{item.answer}</p>
                 </div>
               )}
             </div>
           ))}
         </div>
 
-        {/* CTA */}
         <div className="mt-16 text-center">
-          <p className="text-muted-foreground mb-6">
-            Não encontrou sua pergunta?
-          </p>
-          <a
-            href="#contato"
-            className="inline-block px-8 py-3 bg-accent text-accent-foreground rounded-full font-semibold hover:bg-accent/90 transition-all"
-          >
-            Entre em Contato
-          </a>
+          <p className="mb-6 text-muted-foreground">Não encontrou sua pergunta?</p>
+          <Dialog>
+            <DialogTrigger asChild>
+              <button className="inline-flex rounded-full bg-accent px-8 py-3 font-semibold text-accent-foreground transition-all hover:bg-accent/90">
+                Entre em Contato
+              </button>
+            </DialogTrigger>
+            <DialogContent className="overflow-hidden rounded-3xl border-0 p-0 shadow-[0_18px_55px_rgba(15,23,42,0.14)] [&_[data-slot='dialog-close']]:text-white [&_[data-slot='dialog-close']]:opacity-90 [&_[data-slot='dialog-close']]:hover:opacity-100">
+              <div className="bg-[#2722f8] px-6 py-6 text-white">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl">Fale com a iSprint</DialogTitle>
+                  <DialogDescription className="text-white/80">
+                    Se preferir um contato direto, fale com a gente por WhatsApp ou email.
+                  </DialogDescription>
+                </DialogHeader>
+              </div>
+
+              <div className="space-y-4 p-6">
+                <a
+                  href="https://wa.me/5583991854711"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-between rounded-2xl border border-border bg-white px-5 py-4 transition-all hover:border-accent hover:bg-accent/5"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-500/12 text-green-600">
+                      <MessageCircle className="h-5 w-5" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-foreground">WhatsApp</p>
+                      <p className="text-sm text-muted-foreground">+55 (83) 99185-4711</p>
+                    </div>
+                  </div>
+                  <span className="text-sm font-medium text-accent">Abrir</span>
+                </a>
+
+                <a
+                  href="mailto:isprintstudio@gmail.com"
+                  className="flex items-center justify-between rounded-2xl border border-border bg-white px-5 py-4 transition-all hover:border-accent hover:bg-accent/5"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 text-accent">
+                      <Mail className="h-5 w-5" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-foreground">Email</p>
+                      <p className="text-sm text-muted-foreground">isprintstudio@gmail.com</p>
+                    </div>
+                  </div>
+                  <span className="text-sm font-medium text-accent">Enviar</span>
+                </a>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </section>
