@@ -2,10 +2,6 @@
 
 Website moderno e responsivo para Studio iSprint, especializado em Scan 3D, Modelagem Paramétrica e Prototipagem Técnica.
 
-![GitHub Pages Deploy](https://github.com/seu-usuario/studio-isprint/actions/workflows/deploy.yml/badge.svg)
-
----
-
 ## ✨ Características
 
 - **🎬 Animações Fluidas** - Implementadas com Framer Motion
@@ -199,9 +195,9 @@ pnpm dev -- --port 3001
 
 ## 📞 Contato
 
-- **Email:** contato@studioct.com
-- **Telefone:** +55 (11) 99999-9999
-- **Website:** https://seu-usuario.github.io/studio-isprint/
+- **Email:** isprintstudio@gmail.com
+- **Telefone:** +55 (83) 991854711
+- **Website:** [https://seu-usuario.github.io/studio-isprint/](https://github.com/Isxqwe)
 
 ---
 
@@ -217,6 +213,6 @@ Desenvolvido com ❤️ usando React, Vite e Framer Motion.
 
 ---
 
-**Última Atualização:** Março 2026  
+**Última Atualização:** Abril 2026  
 **Versão:** 1.0  
 **Status:** ✅ Pronto para Produção
