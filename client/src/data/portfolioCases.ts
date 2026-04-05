@@ -1,3 +1,6 @@
+import type { PortfolioAnimation } from "@/components/PortfolioCaseAnimations";
+import type { PortfolioCaseIntroConfig } from "@/components/PortfolioCaseIntro";
+
 export type PortfolioCase = {
   slug: string;
   category: string;
@@ -7,7 +10,11 @@ export type PortfolioCase = {
   readTime: string;
   heroImage: string;
   heroAlt: string;
-  metrics: Array<{ value: string; label: string }>;
+  metrics: Array<{
+    value: string;
+    label: string;
+    icon?: "document" | "render" | "explode" | "fabrication";
+  }>;
   challenge: string;
   context: string;
   process: string[];
@@ -18,10 +25,20 @@ export type PortfolioCase = {
     role: string;
   };
   gallery: Array<{
-    image: string;
+    image?: string;
     title: string;
     description: string;
+    badge?: string;
+    icon?: "pdf" | "render" | "explode";
   }>;
+  documents?: Array<{
+    title: string;
+    description: string;
+    file: string;
+    previewImage?: string;
+  }>;
+  introAnimation?: PortfolioCaseIntroConfig;
+  animations?: PortfolioAnimation[];
 };
 
 export const portfolioCases: PortfolioCase[] = [
@@ -226,6 +243,31 @@ export const portfolioCases: PortfolioCase[] = [
         image: "/assets/portfolio/carrinho-bbq.png",
         title: "Detalhamento aplicado",
         description: "Solda, chapas e subconjuntos ganham mais valor quando a apresentação é organizada.",
+      },
+    ],
+    introAnimation: {
+      title: "Componente interativo de produto",
+      description:
+        "A primeira animaÃ§Ã£o adiciona uma camada mais imersiva para observar forma, superfÃ­cies e relaÃ§Ãµes visuais do conjunto tÃ©cnico.",
+      headline: "A documentaÃ§Ã£o tÃ©cnica comeÃ§a com impacto visual",
+      subcopy:
+        "Antes de descer pelo case, o visitante entra em contato com uma leitura tridimensional do projeto para sentir forma, volume e intenÃ§Ã£o logo na abertura.",
+      modelSrc: "/assets/radial-pneumatic-engine.glb",
+      scrollLengthVh: 190,
+    },
+    animations: [
+      {
+        title: "Componente interativo de produto",
+        description:
+          "A primeira animação adiciona uma camada mais imersiva para observar forma, superfícies e relações visuais do conjunto técnico.",
+        sceneUrl: "https://prod.spline.design/LUsABntzYZGTdMrU/scene.splinecode",
+        loading: "eager",
+      },
+      {
+        title: "Airpods dissection",
+        description:
+          "Esta animação usa o arquivo publicado em scene.splinecode para reforçar leitura explodida, revelação interna e transição de componentes.",
+        sceneUrl: "https://prod.spline.design/jXEgMAfFMLVnlVo0/scene.splinecode",
       },
     ],
   },
