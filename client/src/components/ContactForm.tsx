@@ -44,6 +44,7 @@ const ALLOWED_FILE_TYPES = [
 
 const SERVICE_TYPE_LABELS = {
   scan3d: "Scan 3D",
+  mechanical: "Desenvolvimento mecânico e estrutural",
   parametric: "Modelagem paramétrica",
   prototyping: "Prototipagem técnica",
   other: "Outro",
@@ -69,7 +70,7 @@ const formSchema = z.object({
   email: z.string().email("Email inválido"),
   phone: z.string().min(10, "Telefone deve ter pelo menos 10 dígitos"),
   company: z.string().min(2, "Nome da empresa é obrigatório"),
-  serviceType: z.enum(["scan3d", "parametric", "prototyping", "other"], {
+  serviceType: z.enum(["scan3d", "mechanical", "parametric", "prototyping", "other"], {
     message: "Selecione um tipo de serviço",
   }),
   projectDescription: z
@@ -96,6 +97,10 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+type ContactFormProps = {
+  defaultServiceType?: FormValues["serviceType"];
+};
 
 function getEmailJsErrorMessage(error: unknown) {
   if (error instanceof Error && error.message) {
@@ -130,7 +135,7 @@ function getEmailJsConfig() {
   return { publicKey, serviceId, templateId };
 }
 
-export default function ContactForm() {
+export default function ContactForm({ defaultServiceType }: ContactFormProps) {
   const { trackFormSubmission } = useAnalytics();
   const formRef = useRef<HTMLFormElement | null>(null);
   const successTimeoutRef = useRef<number | null>(null);
@@ -138,21 +143,22 @@ export default function ContactForm() {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const initialValues: Partial<FormValues> = {
+    name: "",
+    email: "",
+    phone: "",
+    company: "",
+    serviceType: defaultServiceType ?? undefined,
+    projectDescription: "",
+    budget: undefined,
+    timeline: undefined,
+    projectFile: undefined,
+    agreeTerms: false,
+  };
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      company: "",
-      serviceType: undefined,
-      projectDescription: "",
-      budget: undefined,
-      timeline: undefined,
-      projectFile: undefined,
-      agreeTerms: false,
-    },
+    defaultValues: initialValues,
   });
 
   const watchedServiceType = form.watch("serviceType");
@@ -218,7 +224,7 @@ export default function ContactForm() {
   };
 
   const resetFormState = () => {
-    form.reset();
+    form.reset(initialValues);
     setSubmitSuccess(false);
     setUploadedFile(null);
 
@@ -447,6 +453,7 @@ export default function ContactForm() {
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="scan3d">Scan 3D</SelectItem>
+                      <SelectItem value="mechanical">Desenvolvimento mecânico e estrutural</SelectItem>
                       <SelectItem value="parametric">Modelagem paramétrica</SelectItem>
                       <SelectItem value="prototyping">Prototipagem técnica</SelectItem>
                       <SelectItem value="other">Outro</SelectItem>

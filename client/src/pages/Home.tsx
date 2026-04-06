@@ -333,9 +333,9 @@ export default function Home() {
                 </div>
               </Link>
 
-              <a
-                href="#contato"
-                onClick={() => trackCTAClick("desenvolvimento_mecanico", "services_contact")}
+              <Link
+                href="/mechanical-structural"
+                onClick={() => trackServiceCardClick("Desenvolvimento mecânico e estrutural")}
                 className="group relative h-80 cursor-pointer overflow-hidden rounded-2xl"
               >
                 <div
@@ -352,10 +352,10 @@ export default function Home() {
                     Desenvolvimento mecânico e estrutural
                   </h3>
                   <div className="inline-flex items-center gap-2 rounded-md border border-white/70 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-white/12">
-                    Solicitar proposta <ArrowRight className="h-4 w-4" />
+                    Saiba mais <ArrowRight className="h-4 w-4" />
                   </div>
                 </div>
-              </a>
+              </Link>
 
               <Link
                 href="/parametric"
@@ -663,6 +663,11 @@ export default function Home() {
                 <li>
                   <a href="#servicos" className="transition hover:text-white">
                     Scan 3D
+                  </a>
+                </li>
+                <li>
+                  <a href="/mechanical-structural" className="transition hover:text-white">
+                    Desenvolvimento mecânico
                   </a>
                 </li>
                 <li>

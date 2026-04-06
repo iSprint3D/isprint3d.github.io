@@ -7,6 +7,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Scan3D from "./pages/Scan3D";
+import MechanicalStructural from "./pages/MechanicalStructural";
 import ParametricModeling from "./pages/ParametricModeling";
 import Prototyping from "./pages/Prototyping";
 import Analytics from "./pages/Analytics";
@@ -44,6 +45,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Home} />
         <Route path="/scan3d" component={Scan3D} />
+        <Route path="/mechanical-structural" component={MechanicalStructural} />
         <Route path="/parametric" component={ParametricModeling} />
         <Route path="/prototyping" component={Prototyping} />
         <Route path="/portfolio/carrinho-bbq-rebocavel" component={PortfolioScan3DIndustrial} />
