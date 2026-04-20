@@ -14,7 +14,9 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
 
 const heroImage =
-  "https://d2xsxph8kpxj0f.cloudfront.net/310519663312667618/HLPz4AQ2jqaUDP7GsJvDWw/parametric-modeling-m4Xf6moeKPmBRrmyfyA8dP.webp";
+  "https://plmx.com.br/wp-content/uploads/2020/06/Modelagem3D-1.jpeg";
+
+const processImage = "https://engenharia360.com/wp-content/uploads/2022/02/TechCD-2-1024x512.jpeg";
 
 const heroMetrics = [
   {
@@ -506,9 +508,9 @@ export default function ParametricModeling() {
               </div>
             </FadeInUp>
 
-            <div className="grid gap-12 lg:grid-cols-[0.92fr_1.08fr] lg:items-start">
-              <ScaleIn delay={0.12} className="lg:sticky lg:top-28">
-                <div className="overflow-hidden rounded-[2rem] border border-white/16 bg-[#050505] shadow-[0_40px_90px_-50px_rgba(0,0,0,0.78)]">
+            <div className="grid gap-12 lg:grid-cols-[0.92fr_1.08fr] lg:items-stretch">
+              <ScaleIn delay={0.12} className="h-full self-stretch">
+                <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[2rem] border border-white/16 bg-[#050505] shadow-[0_40px_90px_-50px_rgba(0,0,0,0.78)]">
                   <div className="border-b border-white/12 px-6 py-5">
                     <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-white">
                       Lógica do modelo
@@ -520,11 +522,11 @@ export default function ParametricModeling() {
                     </p>
                   </div>
 
-                  <div className="bg-[#050505] p-3">
+                  <div className="flex-1 min-h-[280px] bg-[#050505] p-3 lg:min-h-0">
                     <img
-                      src={heroImage}
-                      alt="Visual de modelagem 3D aplicada à construção paramétrica"
-                      className="w-full rounded-[1.35rem] border border-white/8 object-cover"
+                      src={processImage}
+                      alt="Render tecnico usado como apoio visual para modelagem 3D e CAD"
+                      className="h-full w-full rounded-[1.35rem] border border-white/8 object-cover"
                     />
                   </div>
 
@@ -551,10 +553,14 @@ export default function ParametricModeling() {
                 </div>
               </ScaleIn>
 
-              <div className="space-y-5">
+              <div className="flex h-full min-h-0 flex-col gap-5">
                 {processSteps.map((item, index) => (
-                  <FadeInUp key={item.step} delay={0.14 + index * 0.08}>
-                    <div className="rounded-[1.9rem] border border-white/16 bg-[#050505] p-6 shadow-[0_26px_58px_-40px_rgba(0,0,0,0.8)]">
+                  <FadeInUp
+                    key={item.step}
+                    delay={0.14 + index * 0.08}
+                    className="flex-1"
+                  >
+                    <div className="flex h-full flex-col rounded-[1.9rem] border border-white/16 bg-[#050505] p-6 shadow-[0_26px_58px_-40px_rgba(0,0,0,0.8)]">
                       <div className="mb-5 flex items-center justify-between gap-4">
                         <span className="text-4xl font-semibold tracking-tight text-white">
                           {item.step}
